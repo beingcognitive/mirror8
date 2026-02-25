@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mirror-900: #0a0a1a;
+  --color-mirror-800: #111133;
+  --color-mirror-700: #1a1a4e;
+  --color-mirror-600: #2d2d6e;
+  --color-mirror-500: #4a3f8f;
+  --color-mirror-400: #6b5fbf;
+  --color-mirror-300: #8b7fdf;
+  --color-mirror-200: #b0a8ef;
+  --color-mirror-100: #d5d0f7;
+  --color-mirror-50: #eeeafc;
+  --color-accent: #f0a0ff;
+  --color-accent-dim: #c070d0;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-mirror-900);
+  color: white;
+}
+
+/* Glow animation for avatar */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(240, 160, 255, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(240, 160, 255, 0.6); }
+}
+
+@keyframes glow-speak {
+  0%, 100% { box-shadow: 0 0 30px rgba(240, 160, 255, 0.5); }
+  50% { box-shadow: 0 0 60px rgba(240, 160, 255, 0.9); }
+}
+
+.avatar-idle {
+  box-shadow: 0 0 20px rgba(240, 160, 255, 0.2);
+}
+
+.avatar-listening {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.avatar-speaking {
+  animation: glow-speak 0.8s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #b0a8ef, #f0a0ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover effect */
+.future-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.future-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(240, 160, 255, 0.2);
+}
+
+/* Progress bar shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, var(--color-mirror-700) 25%, var(--color-mirror-500) 50%, var(--color-mirror-700) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Live badge pulse */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.live-badge {
+  animation: live-pulse 1.5s ease-in-out infinite;
+}

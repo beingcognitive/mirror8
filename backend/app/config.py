@@ -11,7 +11,7 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 APP_NAME = "mirror8"
 
 # Phase A: text analysis (selfie → appearance + backstories)
-ANALYSIS_MODEL = "gemini-3.1-pro-preview"
+ANALYSIS_MODEL = "gemini-3-pro-preview"
 
 # Phase B: portrait image generation (selfie + prompt → portrait)
 IMAGE_MODEL = "gemini-2.5-flash-image"

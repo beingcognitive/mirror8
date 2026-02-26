@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 interface SelfieCaptureProps {
   onCapture: (file: File) => void;
@@ -15,17 +15,21 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
 
+  // Attach stream to video element once both exist
+  useEffect(() => {
+    if (stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [stream, cameraActive]);
+
   const startCamera = useCallback(async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: 1024, height: 1024 },
       });
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        await videoRef.current.play();
-      }
-      setStream(mediaStream);
       setCameraActive(true);
+      setStream(mediaStream);
     } catch {
       alert("Camera access denied. Please upload a photo instead.");
     }

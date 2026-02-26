@@ -94,21 +94,20 @@ async def phase_b_generate_portrait(
     """Generate a single portrait for one archetype."""
 
     async with semaphore:
-        age_bump = "15-20 years older"
-
-        prompt = f"""Generate a photorealistic portrait of this same person, but {age_bump}.
+        prompt = f"""Generate a photorealistic portrait of this same person, but 1-2 years from now after achieving success.
 
 They have become {archetype.title} — {archetype.name}.
 
 Visual direction:
-- Same person, aged naturally — keep their distinctive features, bone structure, and essence
+- Same person, same age — do NOT age them. Keep their exact face, features, bone structure
+- They look more confident, polished, and fulfilled — the glow of someone who made it
 - Setting: {archetype.visual_keywords}
 - Expression reflects someone who is {archetype.tone}
-- {future_data.get('emotional_tone', 'at peace with their journey')}
+- {future_data.get('emotional_tone', 'energized and thriving')}
 
 Current appearance notes: {appearance.get('distinctive_features', '')}, {appearance.get('overall_vibe', '')}
 
-Create a warm, aspirational portrait. This should feel like meeting a wiser, more experienced version of themselves. Half-body portrait, looking slightly toward camera."""
+Create an aspirational portrait. This should feel like seeing yourself on your best day — same face, just radiating success and confidence. Half-body portrait, looking slightly toward camera."""
 
         try:
             response = await client.aio.models.generate_content(
@@ -173,11 +172,11 @@ async def _fallback_artistic_portrait(
 ) -> FutureData:
     """Artistic/illustration style fallback if photorealistic fails."""
 
-    prompt = f"""Create a stylized digital illustration portrait inspired by this person, aged 15-20 years.
+    prompt = f"""Create a stylized digital illustration portrait inspired by this person, 1-2 years from now after achieving success.
 
 They are {archetype.title} — {archetype.name}.
 Style: cinematic digital art, warm color palette, {archetype.visual_keywords}
-Keep their key features recognizable but in an artistic, aspirational style.
+Same face, same age — do NOT age them. Show them looking confident and successful.
 Half-body portrait, warm lighting."""
 
     try:

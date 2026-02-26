@@ -54,7 +54,7 @@ export default function FuturesPage() {
             Your <span className="gradient-text">8 Futures</span>
           </h1>
           <p className="text-mirror-300 max-w-lg mx-auto">
-            Each portrait is a possible version of you, 15-20 years from now.
+            Each portrait is a possible version of you, 1-2 years from now.
             Choose one to start a live conversation.
           </p>
         </div>

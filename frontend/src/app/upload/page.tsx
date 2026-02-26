@@ -95,7 +95,7 @@ export default function UploadPage() {
               <h1 className="text-2xl md:text-3xl font-bold mb-2">
                 Before we imagine your futures...
               </h1>
-              <p className="text-mirror-300 text-sm max-w-md">
+              <p className="text-mirror-100 text-sm max-w-md">
                 Tell us a bit about yourself so your future selves actually know you.
                 The more you share, the more personal they become.
               </p>
@@ -107,9 +107,9 @@ export default function UploadPage() {
                 value={aboutMe}
                 onChange={(e) => setAboutMe(e.target.value)}
                 placeholder={"e.g. I'm a 28-year-old software engineer in Seoul.\nMy goal for this year is to launch my own AI startup.\nI love building things but I'm scared of leaving my stable job."}
-                className="w-full h-36 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-mirror-100 placeholder:text-mirror-600 text-sm leading-relaxed resize-none focus:outline-none focus:border-mirror-500 focus:ring-1 focus:ring-mirror-500/30 transition"
+                className="w-full h-36 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-white placeholder:text-mirror-500 text-sm leading-relaxed resize-none focus:outline-none focus:border-mirror-500 focus:ring-1 focus:ring-mirror-500/30 transition"
               />
-              <p className="text-mirror-500 text-xs mt-2 text-center">
+              <p className="text-mirror-300 text-xs mt-2 text-center">
                 Age, goals, dreams, fears — anything you want your future self to know.
               </p>
             </div>

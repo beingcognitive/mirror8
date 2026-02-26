@@ -4,7 +4,9 @@ import asyncio
 import base64
 import json
 import logging
+import time
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, File, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,10 +24,13 @@ from app.generator import generate_all_futures
 from app.personas import ARCHETYPE_MAP, ARCHETYPES
 from app.session_store import (
     create_session,
+    get_conversations,
     get_session,
     get_user_sessions,
+    save_conversation,
     set_future,
 )
+from app.tools.session_summary import get_session_insights
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -143,6 +148,22 @@ async def list_my_sessions(user_id: str = Depends(get_current_user)):
     return JSONResponse({"sessions": sessions})
 
 
+@app.get("/api/session/{session_id}/conversations")
+async def list_conversations(
+    session_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    """List past conversations for a session."""
+    session = get_session(session_id)
+    if not session:
+        return JSONResponse(status_code=404, content={"error": "Session not found"})
+    if session["user_id"] != user_id:
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
+
+    conversations = get_conversations(session_id)
+    return JSONResponse({"conversations": conversations})
+
+
 # ──────────────────────────── WebSocket: Live Conversation ────────────────────────────
 
 
@@ -200,6 +221,29 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
 
     ws_session_id = str(uuid.uuid4())
     live_request_queue = LiveRequestQueue()
+
+    # Transcript accumulation
+    transcript_log: list[dict] = []
+    pending_agent_text = []
+    pending_user_text = []
+    started_at = datetime.now(timezone.utc)
+
+    def flush_pending():
+        """Flush buffered partial transcripts into complete turns."""
+        if pending_agent_text:
+            transcript_log.append({
+                "role": "agent",
+                "text": " ".join(pending_agent_text),
+                "ts": time.time(),
+            })
+            pending_agent_text.clear()
+        if pending_user_text:
+            transcript_log.append({
+                "role": "user",
+                "text": " ".join(pending_user_text),
+                "ts": time.time(),
+            })
+            pending_user_text.clear()
 
     # Create ADK session
     await session_service.create_session(
@@ -300,6 +344,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 if hasattr(event, "output_transcription") and event.output_transcription:
                     text = event.output_transcription.text
                     if text and text.strip():
+                        pending_agent_text.append(text.strip())
                         await websocket.send_text(
                             json.dumps({
                                 "type": "transcript",
@@ -312,6 +357,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 if hasattr(event, "input_transcription") and event.input_transcription:
                     text = event.input_transcription.text
                     if text and text.strip():
+                        pending_user_text.append(text.strip())
                         await websocket.send_text(
                             json.dumps({
                                 "type": "transcript",
@@ -321,9 +367,11 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                         )
 
                 if event.interrupted:
+                    flush_pending()
                     await websocket.send_text(json.dumps({"type": "interrupted"}))
 
                 if event.turn_complete:
+                    flush_pending()
                     await websocket.send_text(json.dumps({"type": "turn_complete"}))
 
         except WebSocketDisconnect:
@@ -339,4 +387,26 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
         logger.error(f"WebSocket error: {e}", exc_info=True)
     finally:
         live_request_queue.close()
+
+        # Flush any remaining partial transcripts
+        flush_pending()
+
+        # Persist conversation to Supabase
+        if transcript_log:
+            try:
+                ended_at = datetime.now(timezone.utc)
+                duration = int((ended_at - started_at).total_seconds())
+                insights_data = get_session_insights(session_id)
+                save_conversation(
+                    session_id=session_id,
+                    future_id=future_id,
+                    transcript=transcript_log,
+                    insights=insights_data.get("insights", []),
+                    started_at=started_at.isoformat(),
+                    ended_at=ended_at.isoformat(),
+                    duration_seconds=duration,
+                )
+            except Exception as e:
+                logger.error(f"Failed to save conversation: {e}", exc_info=True)
+
         logger.info(f"Session closed: {ws_session_id}")

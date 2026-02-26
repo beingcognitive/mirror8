@@ -8,7 +8,6 @@ import {
   FuturePersona,
   WSServerMessage,
 } from "@/lib/types";
-import { getPortraitUrl } from "@/lib/api";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
@@ -35,9 +34,7 @@ export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoo
   const [mood, setMood] = useState<AvatarMood>("idle");
   const cameraVideoRef = useRef<HTMLVideoElement>(null);
 
-  const portraitUrl = future.hasPortrait
-    ? getPortraitUrl(sessionId, future.id)
-    : null;
+  const portraitUrl = future.portraitUrl || null;
 
   // Pending transcript aggregation
   const pendingAgentText = useRef("");

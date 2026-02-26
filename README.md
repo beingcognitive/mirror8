@@ -160,6 +160,4 @@ git push
 
 ---
 
-Inspired by Ted Chiang's "Anxiety Is the Dizziness of Freedom."
-
 Built for the Gemini Live Agent Challenge.

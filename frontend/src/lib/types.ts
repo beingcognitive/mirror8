@@ -4,6 +4,7 @@ export interface FuturePersona {
   title: string;
   backstory: string;
   hasPortrait: boolean;
+  portraitUrl?: string;
 }
 
 export interface GenerationResult {

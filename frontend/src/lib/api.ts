@@ -25,10 +25,6 @@ export async function generateFutures(
   return response.json();
 }
 
-export function getPortraitUrl(sessionId: string, futureId: string): string {
-  return `${API_URL}/api/session/${sessionId}/portrait/${futureId}`;
-}
-
 export async function getSession(
   sessionId: string,
   accessToken: string,

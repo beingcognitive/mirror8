@@ -109,6 +109,48 @@ def get_session(session_id: str) -> dict | None:
     }
 
 
+def save_conversation(
+    session_id: str,
+    future_id: str,
+    transcript: list[dict],
+    insights: list[dict],
+    started_at: str,
+    ended_at: str,
+    duration_seconds: int,
+) -> str:
+    """Batch-write conversation transcript + insights to Supabase."""
+    client = _get_client()
+    result = (
+        client.table("conversations")
+        .insert({
+            "session_id": session_id,
+            "future_id": future_id,
+            "transcript": transcript,
+            "insights": insights,
+            "started_at": started_at,
+            "ended_at": ended_at,
+            "duration_seconds": duration_seconds,
+        })
+        .execute()
+    )
+    conv_id = result.data[0]["id"]
+    logger.info(f"Saved conversation {conv_id}: {len(transcript)} turns, {duration_seconds}s")
+    return conv_id
+
+
+def get_conversations(session_id: str) -> list[dict]:
+    """Fetch all conversations for a session, most recent first."""
+    client = _get_client()
+    result = (
+        client.table("conversations")
+        .select("id, future_id, started_at, ended_at, duration_seconds, transcript, insights")
+        .eq("session_id", session_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data
+
+
 def get_user_sessions(user_id: str) -> list[dict]:
     """List all sessions for a user (most recent first)."""
     client = _get_client()

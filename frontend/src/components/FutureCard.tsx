@@ -1,7 +1,6 @@
 "use client";
 
 import { FuturePersona } from "@/lib/types";
-import { getPortraitUrl } from "@/lib/api";
 
 interface FutureCardProps {
   future: FuturePersona;
@@ -14,9 +13,7 @@ export default function FutureCard({
   sessionId,
   onSelect,
 }: FutureCardProps) {
-  const portraitUrl = future.hasPortrait
-    ? getPortraitUrl(sessionId, future.id)
-    : null;
+  const portraitUrl = future.portraitUrl || null;
 
   return (
     <div className="future-card bg-mirror-800/60 rounded-2xl overflow-hidden border border-mirror-700 flex flex-col">

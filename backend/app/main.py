@@ -238,14 +238,11 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
     started_at = datetime.now(timezone.utc)
 
     def flush_pending():
-        """Flush buffered partial transcripts into complete turns."""
-        if pending_agent_text:
-            transcript_log.append({
-                "role": "agent",
-                "text": " ".join(pending_agent_text),
-                "ts": time.time(),
-            })
-            pending_agent_text.clear()
+        """Flush buffered partial transcripts into complete turns.
+
+        User text is flushed before agent text because in the typical flow
+        the user speaks first and the agent responds.
+        """
         if pending_user_text:
             transcript_log.append({
                 "role": "user",
@@ -253,6 +250,13 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 "ts": time.time(),
             })
             pending_user_text.clear()
+        if pending_agent_text:
+            transcript_log.append({
+                "role": "agent",
+                "text": " ".join(pending_agent_text),
+                "ts": time.time(),
+            })
+            pending_agent_text.clear()
 
     # Create ADK session
     await session_service.create_session(
@@ -261,6 +265,13 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
         session_id=ws_session_id,
     )
 
+    # Select voice based on user's detected gender presentation
+    gender = analysis.get("appearance", {}).get("gender_presentation", "").lower()
+    if "female" in gender or "woman" in gender:
+        voice_name = archetype.voice_name_female
+    else:
+        voice_name = archetype.voice_name_male
+
     # Run config with archetype-specific voice
     run_config = RunConfig(
         streaming_mode=StreamingMode.BIDI,
@@ -268,7 +279,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
         speech_config=types.SpeechConfig(
             voice_config=types.VoiceConfig(
                 prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                    voice_name=archetype.voice_name,
+                    voice_name=voice_name,
                 )
             )
         ),
@@ -319,6 +330,10 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
             logger.info(f"Client disconnected (upstream): {session_id}")
         except Exception as e:
             logger.error(f"Upstream error: {e}", exc_info=True)
+        finally:
+            # Signal downstream to exit so gather() returns promptly
+            # (without this, downstream blocks on run_live until Cloud Run timeout)
+            live_request_queue.close()
 
     async def downstream_task():
         """Receive events from Gemini via ADK, forward to browser."""

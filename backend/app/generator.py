@@ -45,10 +45,12 @@ connect to it. Their self-description is MORE reliable than visual guesses.
 Look at this person carefully. Note their approximate age, gender presentation, ethnicity,
 distinctive features, expression, and overall vibe.
 {user_context}
-For each of the 8 archetypes below, create a personalized backstory that feels like it
-could genuinely be THIS person's future. Reference their apparent qualities and what they
-shared about themselves. Make each backstory emotionally resonant — include specific
-challenges they overcame, wisdom they gained, and how they speak.
+For each of the 8 archetypes below, create a personalized future that feels like it
+could genuinely be THIS person's future. Give each future a unique personalized name
+and title that reflects THIS person's specific background and goals — don't use the
+generic archetype names. Reference their apparent qualities and what they shared about
+themselves. Make each backstory emotionally resonant — include specific challenges they
+overcame, wisdom they gained, and how they speak.
 
 Archetypes:
 {archetypes_desc}
@@ -63,6 +65,8 @@ Respond with ONLY valid JSON in this exact format:
   }},
   "futures": {{
     "visionary": {{
+      "personalized_name": "A short, evocative name for this future (e.g. 'The AI Pioneer')",
+      "personalized_title": "A specific role title (e.g. 'Founder of an AI Startup')",
       "personalized_backstory": "A 2-3 sentence backstory specific to this person...",
       "challenges_overcome": "What they struggled with...",
       "key_wisdom": "Their most important life lesson...",
@@ -105,12 +109,14 @@ async def phase_b_generate_portrait(
 ) -> FutureData:
     """Generate a single portrait for one archetype."""
 
+    name = future_data.get("personalized_name", archetype.name)
+    title = future_data.get("personalized_title", archetype.title)
     user_hint = f"\nAbout this person: {about_me}" if about_me.strip() else ""
 
     async with semaphore:
         prompt = f"""Generate a photorealistic portrait of this same person, but 1-2 years from now after achieving success.
 
-They have become {archetype.title} — {archetype.name}.
+They have become {title} — {name}.
 {user_hint}
 Visual direction:
 - Same person, same age — do NOT age them. Keep their exact face, features, bone structure
@@ -151,8 +157,8 @@ Create an aspirational portrait. This should feel like seeing yourself on your b
                     )
                     return FutureData(
                         archetype_id=archetype.id,
-                        name=archetype.name,
-                        title=archetype.title,
+                        name=name,
+                        title=title,
                         backstory=future_data.get("personalized_backstory", archetype.backstory_seed),
                         portrait_bytes=part.inline_data.data,
                         portrait_mime=part.inline_data.mime_type,
@@ -168,8 +174,8 @@ Create an aspirational portrait. This should feel like seeing yourself on your b
             logger.error(f"Portrait generation failed for {archetype.id}: {e}")
             return FutureData(
                 archetype_id=archetype.id,
-                name=archetype.name,
-                title=archetype.title,
+                name=name,
+                title=title,
                 backstory=future_data.get("personalized_backstory", archetype.backstory_seed),
                 portrait_bytes=None,
                 portrait_mime="image/png",
@@ -187,11 +193,13 @@ async def _fallback_artistic_portrait(
 ) -> FutureData:
     """Artistic/illustration style fallback if photorealistic fails."""
 
+    name = future_data.get("personalized_name", archetype.name)
+    title = future_data.get("personalized_title", archetype.title)
     user_hint = f"\nAbout this person: {about_me}" if about_me.strip() else ""
 
     prompt = f"""Create a stylized digital illustration portrait inspired by this person, 1-2 years from now after achieving success.
 
-They are {archetype.title} — {archetype.name}.
+They are {title} — {name}.
 {user_hint}
 Style: cinematic digital art, warm color palette, {archetype.visual_keywords}
 Same face, same age — do NOT age them. Show them looking confident and successful.
@@ -218,8 +226,8 @@ Half-body portrait, warm lighting."""
             if part.inline_data and part.inline_data.mime_type.startswith("image/"):
                 return FutureData(
                     archetype_id=archetype.id,
-                    name=archetype.name,
-                    title=archetype.title,
+                    name=name,
+                    title=title,
                     backstory=future_data.get("personalized_backstory", archetype.backstory_seed),
                     portrait_bytes=part.inline_data.data,
                     portrait_mime=part.inline_data.mime_type,
@@ -229,8 +237,8 @@ Half-body portrait, warm lighting."""
 
     return FutureData(
         archetype_id=archetype.id,
-        name=archetype.name,
-        title=archetype.title,
+        name=name,
+        title=title,
         backstory=future_data.get("personalized_backstory", archetype.backstory_seed),
         portrait_bytes=None,
         portrait_mime="image/png",

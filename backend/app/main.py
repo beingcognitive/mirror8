@@ -8,7 +8,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, File, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from google.adk.agents.live_request_queue import LiveRequestQueue
@@ -60,6 +60,7 @@ async def health():
 @app.post("/api/generate")
 async def generate_futures_endpoint(
     file: UploadFile = File(...),
+    about_me: str = Form(""),
     user_id: str = Depends(get_current_user),
 ):
     """Accept selfie upload, run generation pipeline, return session data."""
@@ -67,9 +68,14 @@ async def generate_futures_endpoint(
     selfie_mime = file.content_type or "image/jpeg"
 
     logger.info(f"Starting generation for user {user_id} ({len(selfie_bytes)} bytes, {selfie_mime})")
+    if about_me:
+        logger.info(f"User profile: {about_me[:100]}...")
 
     try:
-        analysis, futures = await generate_all_futures(selfie_bytes, selfie_mime)
+        analysis, futures = await generate_all_futures(selfie_bytes, selfie_mime, about_me)
+
+        # Store about_me in analysis for later use (conversations)
+        analysis["about_me"] = about_me
 
         # Create session in Supabase with analysis
         session_id = create_session(user_id, analysis)
@@ -204,12 +210,15 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
     if analysis:
         persona_data = analysis.get("futures", {}).get(future_id, {})
 
+    about_me = analysis.get("about_me", "")
+
     # Create per-session Agent
     agent = create_mirror_agent(
         archetype=archetype,
         persona_data=persona_data,
         analysis=analysis,
         session_id=session_id,
+        about_me=about_me,
     )
 
     # Create per-session Runner

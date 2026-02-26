@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 
-async def phase_a_analyze(selfie_bytes: bytes, selfie_mime: str) -> dict:
+async def phase_a_analyze(selfie_bytes: bytes, selfie_mime: str, about_me: str = "") -> dict:
     """Analyze selfie and generate personalized backstories for each archetype."""
 
     archetypes_desc = "\n".join(
@@ -29,15 +29,26 @@ async def phase_a_analyze(selfie_bytes: bytes, selfie_mime: str) -> dict:
         for a in ARCHETYPES
     )
 
+    user_context = ""
+    if about_me.strip():
+        user_context = f"""
+The user shared this about themselves:
+"{about_me}"
+
+Use this to make each backstory deeply personal — reference their actual goals, age,
+background, and aspirations. If they mentioned a specific goal, make sure futures
+connect to it. Their self-description is MORE reliable than visual guesses.
+"""
+
     prompt = f"""You are analyzing a selfie to create 8 personalized future-self personas.
 
 Look at this person carefully. Note their approximate age, gender presentation, ethnicity,
 distinctive features, expression, and overall vibe.
-
+{user_context}
 For each of the 8 archetypes below, create a personalized backstory that feels like it
-could genuinely be THIS person's future. Reference their apparent qualities. Make each
-backstory emotionally resonant — include specific challenges they overcame, wisdom they
-gained, and how they speak.
+could genuinely be THIS person's future. Reference their apparent qualities and what they
+shared about themselves. Make each backstory emotionally resonant — include specific
+challenges they overcame, wisdom they gained, and how they speak.
 
 Archetypes:
 {archetypes_desc}
@@ -90,14 +101,17 @@ async def phase_b_generate_portrait(
     appearance: dict,
     future_data: dict,
     semaphore: asyncio.Semaphore,
+    about_me: str = "",
 ) -> FutureData:
     """Generate a single portrait for one archetype."""
+
+    user_hint = f"\nAbout this person: {about_me}" if about_me.strip() else ""
 
     async with semaphore:
         prompt = f"""Generate a photorealistic portrait of this same person, but 1-2 years from now after achieving success.
 
 They have become {archetype.title} — {archetype.name}.
-
+{user_hint}
 Visual direction:
 - Same person, same age — do NOT age them. Keep their exact face, features, bone structure
 - They look more confident, polished, and fulfilled — the glow of someone who made it
@@ -147,7 +161,7 @@ Create an aspirational portrait. This should feel like seeing yourself on your b
             # No image in response — try artistic fallback
             logger.warning(f"No image for {archetype.id}, trying artistic style")
             return await _fallback_artistic_portrait(
-                selfie_bytes, selfie_mime, archetype, appearance, future_data, semaphore
+                selfie_bytes, selfie_mime, archetype, appearance, future_data, semaphore, about_me
             )
 
         except Exception as e:
@@ -169,12 +183,16 @@ async def _fallback_artistic_portrait(
     appearance: dict,
     future_data: dict,
     semaphore: asyncio.Semaphore,
+    about_me: str = "",
 ) -> FutureData:
     """Artistic/illustration style fallback if photorealistic fails."""
+
+    user_hint = f"\nAbout this person: {about_me}" if about_me.strip() else ""
 
     prompt = f"""Create a stylized digital illustration portrait inspired by this person, 1-2 years from now after achieving success.
 
 They are {archetype.title} — {archetype.name}.
+{user_hint}
 Style: cinematic digital art, warm color palette, {archetype.visual_keywords}
 Same face, same age — do NOT age them. Show them looking confident and successful.
 Half-body portrait, warm lighting."""
@@ -220,7 +238,7 @@ Half-body portrait, warm lighting."""
 
 
 async def generate_all_futures(
-    selfie_bytes: bytes, selfie_mime: str
+    selfie_bytes: bytes, selfie_mime: str, about_me: str = ""
 ) -> tuple[dict, list[FutureData]]:
     """Full generation pipeline: analyze selfie, then generate 8 portraits.
 
@@ -229,7 +247,7 @@ async def generate_all_futures(
 
     # Phase A: Analyze selfie
     logger.info("Phase A: Analyzing selfie...")
-    analysis = await phase_a_analyze(selfie_bytes, selfie_mime)
+    analysis = await phase_a_analyze(selfie_bytes, selfie_mime, about_me)
 
     appearance = analysis.get("appearance", {})
     futures_data = analysis.get("futures", {})
@@ -243,7 +261,7 @@ async def generate_all_futures(
         future_data = futures_data.get(archetype.id, {})
         tasks.append(
             phase_b_generate_portrait(
-                selfie_bytes, selfie_mime, archetype, appearance, future_data, semaphore
+                selfie_bytes, selfie_mime, archetype, appearance, future_data, semaphore, about_me
             )
         )
 

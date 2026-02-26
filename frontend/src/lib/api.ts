@@ -5,9 +5,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 export async function generateFutures(
   file: File,
   accessToken: string,
+  aboutMe?: string,
 ): Promise<GenerationResult> {
   const formData = new FormData();
   formData.append("file", file);
+  if (aboutMe) {
+    formData.append("about_me", aboutMe);
+  }
 
   const response = await fetch(`${API_URL}/api/generate`, {
     method: "POST",

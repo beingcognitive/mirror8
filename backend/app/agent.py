@@ -13,6 +13,7 @@ def create_mirror_agent(
     persona_data: dict,
     analysis: dict,
     session_id: str,
+    about_me: str = "",
 ) -> Agent:
     """Create a per-session Agent with a persona-specific system prompt.
 
@@ -62,6 +63,10 @@ CONVERSATION APPROACH:
 5. Don't lecture — connect. This is a conversation between two versions of the same soul.
 6. If they seem skeptical, acknowledge it with humor: "Yeah, I wouldn't have believed this either."
 7. Reference visual observations naturally: "I can see you're smiling" or "You look tired — I remember those days."
+
+WHAT YOUR YOUNGER SELF SHARED:
+{f'"{about_me}"' if about_me.strip() else "(They didn't share details — discover who they are through conversation.)"}
+{"Use this naturally — reference their goals, fears, background. Don't recite it back, weave it in." if about_me.strip() else "Be extra curious. Ask about their life, dreams, and what's keeping them up at night."}
 
 SESSION CONTEXT:
 - Session ID: {session_id}

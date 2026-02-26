@@ -21,7 +21,7 @@ def verify_token(token: str) -> str:
         payload = jwt.decode(
             token,
             signing_key.key,
-            algorithms=["RS256"],
+            algorithms=["ES256", "RS256"],
             audience="authenticated",
         )
         return payload["sub"]

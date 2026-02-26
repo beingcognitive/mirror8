@@ -67,6 +67,7 @@ Respond with ONLY valid JSON in this exact format:
     "visionary": {{
       "personalized_name": "A short, evocative name for this future (e.g. 'The AI Pioneer')",
       "personalized_title": "A specific role title (e.g. 'Founder of an AI Startup')",
+      "visual_direction": "Describe the portrait setting, attire, and mood for this specific future (e.g. 'modern startup office, casual blazer, dual monitors with code, warm confident expression')",
       "personalized_backstory": "A 2-3 sentence backstory specific to this person...",
       "challenges_overcome": "What they struggled with...",
       "key_wisdom": "Their most important life lesson...",
@@ -111,6 +112,7 @@ async def phase_b_generate_portrait(
 
     name = future_data.get("personalized_name", archetype.name)
     title = future_data.get("personalized_title", archetype.title)
+    visual = future_data.get("visual_direction", archetype.visual_keywords)
     user_hint = f"\nAbout this person: {about_me}" if about_me.strip() else ""
 
     async with semaphore:
@@ -121,7 +123,7 @@ They have become {title} — {name}.
 Visual direction:
 - Same person, same age — do NOT age them. Keep their exact face, features, bone structure
 - They look more confident, polished, and fulfilled — the glow of someone who made it
-- Setting: {archetype.visual_keywords}
+- Setting and style: {visual}
 - Expression reflects someone who is {archetype.tone}
 - {future_data.get('emotional_tone', 'energized and thriving')}
 
@@ -195,13 +197,14 @@ async def _fallback_artistic_portrait(
 
     name = future_data.get("personalized_name", archetype.name)
     title = future_data.get("personalized_title", archetype.title)
+    visual = future_data.get("visual_direction", archetype.visual_keywords)
     user_hint = f"\nAbout this person: {about_me}" if about_me.strip() else ""
 
     prompt = f"""Create a stylized digital illustration portrait inspired by this person, 1-2 years from now after achieving success.
 
 They are {title} — {name}.
 {user_hint}
-Style: cinematic digital art, warm color palette, {archetype.visual_keywords}
+Style: cinematic digital art, warm color palette, {visual}
 Same face, same age — do NOT age them. Show them looking confident and successful.
 Half-body portrait, warm lighting."""
 

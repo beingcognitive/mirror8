@@ -22,6 +22,7 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
       });
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        await videoRef.current.play();
       }
       setStream(mediaStream);
       setCameraActive(true);

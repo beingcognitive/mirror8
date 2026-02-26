@@ -37,9 +37,9 @@ export function useWebSocket({
   );
 
   const connect = useCallback(
-    (sessionId: string, futureId: string) => {
+    (sessionId: string, futureId: string, accessToken: string) => {
       updateStatus("connecting");
-      const url = `${WS_URL}/ws/mirror/${sessionId}/${futureId}`;
+      const url = `${WS_URL}/ws/mirror/${sessionId}/${futureId}?token=${encodeURIComponent(accessToken)}`;
       const ws = new WebSocket(url);
       ws.binaryType = "arraybuffer";
 

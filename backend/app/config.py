@@ -10,11 +10,18 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 APP_NAME = "mirror8"
 
-# Gemini 2.5 Flash for text analysis + image generation
-GENERATION_MODEL = "gemini-2.5-flash-preview-05-20"
+# Phase A: text analysis (selfie → appearance + backstories)
+ANALYSIS_MODEL = "gemini-3.1-pro-preview"
 
-# Gemini 2.5 Flash Native Audio for live conversation
-LIVE_MODEL = "gemini-2.5-flash-native-audio-preview"
+# Phase B: portrait image generation (selfie + prompt → portrait)
+IMAGE_MODEL = "gemini-2.5-flash-image"
+
+# Live conversation (Gemini Native Audio)
+LIVE_MODEL = "gemini-2.5-flash-native-audio-preview-12-2025"
+
+# Supabase
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")  # sb_secret_* (replaces service_role)
 
 # Max concurrent image generations
 MAX_CONCURRENT_GENERATIONS = 4

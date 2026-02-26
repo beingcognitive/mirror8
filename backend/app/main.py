@@ -6,9 +6,9 @@ import json
 import logging
 import uuid
 
-from fastapi import FastAPI, File, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, File, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, RedirectResponse
 from google.adk.agents.live_request_queue import LiveRequestQueue
 from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.adk.runners import Runner
@@ -16,20 +16,21 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from app.agent import create_mirror_agent
+from app.auth import get_current_user, verify_ws_token
 from app.config import APP_NAME, FRONTEND_URL
 from app.generator import generate_all_futures
 from app.personas import ARCHETYPE_MAP, ARCHETYPES
 from app.session_store import (
     create_session,
     get_session,
-    set_analysis,
+    get_user_sessions,
     set_future,
 )
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Mirror8 API", version="0.1.0")
+app = FastAPI(title="Mirror8 API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,33 +53,32 @@ async def health():
 
 
 @app.post("/api/generate")
-async def generate_futures(file: UploadFile = File(...)):
+async def generate_futures_endpoint(
+    file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user),
+):
     """Accept selfie upload, run generation pipeline, return session data."""
     selfie_bytes = await file.read()
     selfie_mime = file.content_type or "image/jpeg"
-    session_id = str(uuid.uuid4())
 
-    logger.info(f"Starting generation for session {session_id} ({len(selfie_bytes)} bytes, {selfie_mime})")
-
-    # Create session
-    create_session(session_id, selfie_bytes, selfie_mime)
+    logger.info(f"Starting generation for user {user_id} ({len(selfie_bytes)} bytes, {selfie_mime})")
 
     try:
         analysis, futures = await generate_all_futures(selfie_bytes, selfie_mime)
 
-        # Store results
-        set_analysis(session_id, analysis)
-        for future in futures:
-            set_future(session_id, future)
+        # Create session in Supabase with analysis
+        session_id = create_session(user_id, analysis)
 
-        # Build response
+        # Store each future (DB row + portrait upload)
         futures_meta = []
         for future in futures:
+            portrait_url = set_future(session_id, future)
             futures_meta.append({
                 "id": future.archetype_id,
                 "name": future.name,
                 "title": future.title,
                 "backstory": future.backstory,
+                "portraitUrl": portrait_url,
                 "hasPortrait": future.portrait_bytes is not None,
             })
 
@@ -96,43 +96,51 @@ async def generate_futures(file: UploadFile = File(...)):
 
 
 @app.get("/api/session/{session_id}")
-async def get_session_data(session_id: str):
-    """Get session metadata (without image binaries)."""
+async def get_session_data(
+    session_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    """Get session metadata."""
     session = get_session(session_id)
     if not session:
         return JSONResponse(status_code=404, content={"error": "Session not found"})
 
-    futures_meta = []
-    for fid, future in session.futures.items():
-        futures_meta.append({
-            "id": future.archetype_id,
-            "name": future.name,
-            "title": future.title,
-            "backstory": future.backstory,
-            "hasPortrait": future.portrait_bytes is not None,
-        })
+    # Verify ownership
+    if session["user_id"] != user_id:
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
 
     return JSONResponse({
-        "sessionId": session_id,
-        "futures": futures_meta,
+        "sessionId": session["session_id"],
+        "futures": session["futures"],
     })
 
 
 @app.get("/api/session/{session_id}/portrait/{future_id}")
-async def get_portrait(session_id: str, future_id: str):
-    """Get portrait image binary for a specific future."""
+async def get_portrait(
+    session_id: str,
+    future_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    """Redirect to Supabase Storage public URL for the portrait."""
     session = get_session(session_id)
     if not session:
         return JSONResponse(status_code=404, content={"error": "Session not found"})
 
-    future = session.futures.get(future_id)
-    if not future or not future.portrait_bytes:
-        return JSONResponse(status_code=404, content={"error": "Portrait not found"})
+    if session["user_id"] != user_id:
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
 
-    return Response(
-        content=future.portrait_bytes,
-        media_type=future.portrait_mime,
-    )
+    for future in session["futures"]:
+        if future["id"] == future_id and future["portraitUrl"]:
+            return RedirectResponse(url=future["portraitUrl"])
+
+    return JSONResponse(status_code=404, content={"error": "Portrait not found"})
+
+
+@app.get("/api/my-sessions")
+async def list_my_sessions(user_id: str = Depends(get_current_user)):
+    """List the current user's past sessions."""
+    sessions = get_user_sessions(user_id)
+    return JSONResponse({"sessions": sessions})
 
 
 # ──────────────────────────── WebSocket: Live Conversation ────────────────────────────
@@ -141,13 +149,25 @@ async def get_portrait(session_id: str, future_id: str):
 @app.websocket("/ws/mirror/{session_id}/{future_id}")
 async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str):
     """Live conversation with a future-self persona via Gemini Live API."""
-    await websocket.accept()
-    logger.info(f"WebSocket connected: session={session_id}, future={future_id}")
+    # Verify auth from query param before accepting
+    try:
+        user_id = verify_ws_token(websocket)
+    except Exception:
+        await websocket.close(code=4001, reason="Unauthorized")
+        return
 
-    # Look up session and archetype
+    await websocket.accept()
+    logger.info(f"WebSocket connected: session={session_id}, future={future_id}, user={user_id}")
+
+    # Look up session and verify ownership
     session = get_session(session_id)
     if not session:
         await websocket.send_text(json.dumps({"type": "error", "message": "Session not found"}))
+        await websocket.close()
+        return
+
+    if session["user_id"] != user_id:
+        await websocket.send_text(json.dumps({"type": "error", "message": "Forbidden"}))
         await websocket.close()
         return
 
@@ -159,14 +179,15 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
 
     # Get persona data from analysis
     persona_data = {}
-    if session.analysis:
-        persona_data = session.analysis.get("futures", {}).get(future_id, {})
+    analysis = session.get("analysis") or {}
+    if analysis:
+        persona_data = analysis.get("futures", {}).get(future_id, {})
 
     # Create per-session Agent
     agent = create_mirror_agent(
         archetype=archetype,
         persona_data=persona_data,
-        analysis=session.analysis or {},
+        analysis=analysis,
         session_id=session_id,
     )
 

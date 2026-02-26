@@ -1,23 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SelfieCapture from "@/components/SelfieCapture";
 import GenerationProgress from "@/components/GenerationProgress";
 import { generateFutures } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function UploadPage() {
   const router = useRouter();
+  const { user, loading, getAccessToken } = useAuth();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/");
+    }
+  }, [loading, user, router]);
 
   const handleCapture = async (file: File) => {
     setGenerating(true);
     setError(null);
 
     try {
-      const result = await generateFutures(file);
+      const token = await getAccessToken();
+      if (!token) {
+        router.push("/");
+        return;
+      }
+      const result = await generateFutures(file, token);
       // Store in sessionStorage for the futures page
       sessionStorage.setItem("mirror8_session", JSON.stringify(result));
       router.push("/futures");
@@ -26,6 +39,8 @@ export default function UploadPage() {
       setGenerating(false);
     }
   };
+
+  if (loading || !user) return null;
 
   return (
     <main className="min-h-screen flex flex-col">

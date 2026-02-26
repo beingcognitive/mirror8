@@ -5,19 +5,26 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FuturesGrid from "@/components/FuturesGrid";
 import { GenerationResult } from "@/lib/types";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function FuturesPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [data, setData] = useState<GenerationResult | null>(null);
 
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/");
+      return;
+    }
+
     const stored = sessionStorage.getItem("mirror8_session");
     if (stored) {
       setData(JSON.parse(stored));
-    } else {
+    } else if (!loading) {
       router.push("/upload");
     }
-  }, [router]);
+  }, [router, loading, user]);
 
   const handleSelect = (futureId: string) => {
     if (data) {
@@ -25,7 +32,7 @@ export default function FuturesPage() {
     }
   };
 
-  if (!data) return null;
+  if (loading || !user || !data) return null;
 
   return (
     <main className="min-h-screen flex flex-col">

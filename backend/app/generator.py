@@ -12,7 +12,7 @@ import logging
 from google import genai
 from google.genai import types
 
-from app.config import GENERATION_MODEL, GOOGLE_API_KEY, MAX_CONCURRENT_GENERATIONS
+from app.config import ANALYSIS_MODEL, IMAGE_MODEL, GOOGLE_API_KEY, MAX_CONCURRENT_GENERATIONS
 from app.personas import ARCHETYPES, Archetype
 from app.session_store import FutureData
 
@@ -63,7 +63,7 @@ Respond with ONLY valid JSON in this exact format:
 }}"""
 
     response = await client.aio.models.generate_content(
-        model=GENERATION_MODEL,
+        model=ANALYSIS_MODEL,
         contents=[
             types.Content(
                 parts=[
@@ -112,7 +112,7 @@ Create a warm, aspirational portrait. This should feel like meeting a wiser, mor
 
         try:
             response = await client.aio.models.generate_content(
-                model=GENERATION_MODEL,
+                model=IMAGE_MODEL,
                 contents=[
                     types.Content(
                         parts=[
@@ -182,7 +182,7 @@ Half-body portrait, warm lighting."""
 
     try:
         response = await client.aio.models.generate_content(
-            model=GENERATION_MODEL,
+            model=IMAGE_MODEL,
             contents=[
                 types.Content(
                     parts=[

@@ -1,19 +1,55 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function LandingPage() {
+  const { user, loading, signIn, signOut } = useAuth();
+  const router = useRouter();
+
+  const handleCTA = () => {
+    if (user) {
+      router.push("/upload");
+    } else {
+      signIn();
+    }
+  };
+
   return (
     <main className="min-h-screen flex flex-col">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4">
         <div className="text-xl font-bold gradient-text">Mirror8</div>
-        <Link
-          href="/upload"
-          className="px-4 py-2 rounded-full bg-mirror-600 hover:bg-mirror-500 transition text-sm font-medium"
-        >
-          Get Started
-        </Link>
+        <div className="flex items-center gap-3">
+          {!loading && user ? (
+            <>
+              {user.user_metadata?.avatar_url && (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt=""
+                  className="w-8 h-8 rounded-full"
+                  referrerPolicy="no-referrer"
+                />
+              )}
+              <span className="text-sm text-mirror-200 hidden sm:inline">
+                {user.user_metadata?.full_name || user.email}
+              </span>
+              <button
+                onClick={signOut}
+                className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : !loading ? (
+            <button
+              onClick={signIn}
+              className="px-4 py-2 rounded-full bg-mirror-600 hover:bg-mirror-500 transition text-sm font-medium"
+            >
+              Sign In
+            </button>
+          ) : null}
+        </div>
       </nav>
 
       {/* Hero */}
@@ -27,14 +63,16 @@ export default function LandingPage() {
           Upload a selfie. AI imagines 8 possible futures for you. Pick one —
           then have a real-time voice conversation with who you could become.
         </p>
-        <Link
-          href="/upload"
+        <button
+          onClick={handleCTA}
           className="px-8 py-4 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold text-lg hover:opacity-90 transition"
         >
-          Upload Your Selfie
-        </Link>
+          {user ? "Upload Your Selfie" : "Get Started with Google"}
+        </button>
         <p className="mt-4 text-sm text-mirror-400">
-          No sign-up required. Your photos are not stored permanently.
+          {user
+            ? "Your sessions are saved to your account."
+            : "Sign in with Google to save your sessions."}
         </p>
       </section>
 

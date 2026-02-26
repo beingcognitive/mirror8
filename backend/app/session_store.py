@@ -1,9 +1,22 @@
-"""In-memory session storage for hackathon (single instance)."""
+"""Supabase-backed session storage (DB + Storage)."""
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+from supabase import create_client, Client
+
+from app.config import SUPABASE_URL, SUPABASE_SECRET_KEY
 
 logger = logging.getLogger(__name__)
+
+_client: Client | None = None
+
+
+def _get_client() -> Client:
+    global _client
+    if _client is None:
+        _client = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
+    return _client
 
 
 @dataclass
@@ -16,45 +29,94 @@ class FutureData:
     portrait_mime: str = "image/png"
 
 
-@dataclass
-class Session:
-    session_id: str
-    selfie_bytes: bytes
-    selfie_mime: str
-    analysis: dict | None = None
-    futures: dict[str, FutureData] = field(default_factory=dict)
-
-
-_sessions: dict[str, Session] = {}
-
-
-def create_session(session_id: str, selfie_bytes: bytes, selfie_mime: str) -> Session:
-    session = Session(
-        session_id=session_id,
-        selfie_bytes=selfie_bytes,
-        selfie_mime=selfie_mime,
+def create_session(user_id: str, analysis: dict) -> str:
+    """Create a session in Supabase and return its UUID."""
+    client = _get_client()
+    result = (
+        client.table("sessions")
+        .insert({"user_id": user_id, "analysis": analysis})
+        .execute()
     )
-    _sessions[session_id] = session
+    session_id = result.data[0]["id"]
     logger.info(f"Created session: {session_id}")
-    return session
+    return session_id
 
 
-def get_session(session_id: str) -> Session | None:
-    return _sessions.get(session_id)
+def set_future(session_id: str, future: FutureData) -> str | None:
+    """Insert a future row and upload portrait to Storage. Returns portrait public URL."""
+    client = _get_client()
+
+    portrait_url = None
+    if future.portrait_bytes:
+        ext = "png" if "png" in future.portrait_mime else "jpg"
+        path = f"{session_id}/{future.archetype_id}.{ext}"
+        client.storage.from_("portraits").upload(
+            path,
+            future.portrait_bytes,
+            {"content-type": future.portrait_mime},
+        )
+        portrait_url = client.storage.from_("portraits").get_public_url(path)
+
+    client.table("futures").insert({
+        "session_id": session_id,
+        "archetype_id": future.archetype_id,
+        "name": future.name,
+        "title": future.title,
+        "backstory": future.backstory,
+        "portrait_url": portrait_url,
+    }).execute()
+
+    return portrait_url
 
 
-def set_analysis(session_id: str, analysis: dict) -> None:
-    session = _sessions.get(session_id)
-    if session:
-        session.analysis = analysis
+def get_session(session_id: str) -> dict | None:
+    """Fetch session + its futures from Supabase."""
+    client = _get_client()
+
+    session_result = (
+        client.table("sessions")
+        .select("*")
+        .eq("id", session_id)
+        .execute()
+    )
+    if not session_result.data:
+        return None
+
+    session = session_result.data[0]
+
+    futures_result = (
+        client.table("futures")
+        .select("*")
+        .eq("session_id", session_id)
+        .execute()
+    )
+
+    return {
+        "session_id": session["id"],
+        "user_id": session["user_id"],
+        "analysis": session["analysis"],
+        "futures": [
+            {
+                "id": f["archetype_id"],
+                "name": f["name"],
+                "title": f["title"],
+                "backstory": f["backstory"],
+                "portraitUrl": f["portrait_url"],
+                "hasPortrait": f["portrait_url"] is not None,
+            }
+            for f in futures_result.data
+        ],
+    }
 
 
-def set_future(session_id: str, future: FutureData) -> None:
-    session = _sessions.get(session_id)
-    if session:
-        session.futures[future.archetype_id] = future
-
-
-def delete_session(session_id: str) -> None:
-    _sessions.pop(session_id, None)
-    logger.info(f"Deleted session: {session_id}")
+def get_user_sessions(user_id: str) -> list[dict]:
+    """List all sessions for a user (most recent first)."""
+    client = _get_client()
+    result = (
+        client.table("sessions")
+        .select("id, created_at")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data

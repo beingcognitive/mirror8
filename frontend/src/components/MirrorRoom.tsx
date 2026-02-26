@@ -21,11 +21,12 @@ import SessionControls from "./SessionControls";
 interface MirrorRoomProps {
   sessionId: string;
   future: FuturePersona;
+  accessToken: string;
 }
 
 let entryCounter = 0;
 
-export default function MirrorRoom({ sessionId, future }: MirrorRoomProps) {
+export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoomProps) {
   const [status, setStatus] = useState<ConnectionStatus>("idle");
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
   const [micLevel, setMicLevel] = useState(0);
@@ -146,14 +147,14 @@ export default function MirrorRoom({ sessionId, future }: MirrorRoomProps) {
         await cameraCapture.start(cameraVideoRef.current);
       }
 
-      // Connect WebSocket
-      ws.connect(sessionId, future.id);
+      // Connect WebSocket with auth token
+      ws.connect(sessionId, future.id, accessToken);
       setMood("listening");
     } catch (err) {
       console.error("Failed to start session:", err);
       setStatus("error");
     }
-  }, [sessionId, future.id, playback, audioCapture, cameraCapture, ws]);
+  }, [sessionId, future.id, accessToken, playback, audioCapture, cameraCapture, ws]);
 
   const handleEnd = useCallback(() => {
     audioCapture.stop();

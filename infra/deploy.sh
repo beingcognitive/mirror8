@@ -30,7 +30,9 @@ deploy_backend() {
     --min-instances=0 \
     --max-instances=3 \
     --set-env-vars="GOOGLE_API_KEY=${GOOGLE_API_KEY:-}" \
-    --set-env-vars="FRONTEND_URL=${FRONTEND_URL:-https://mirror8.app}"
+    --set-env-vars="FRONTEND_URL=${FRONTEND_URL:-https://mirror8.app}" \
+    --set-env-vars="SUPABASE_URL=${SUPABASE_URL:-}" \
+    --set-env-vars="SUPABASE_SECRET_KEY=${SUPABASE_SECRET_KEY:-}"
 
   BACKEND_URL=$(gcloud run services describe "$BACKEND_SERVICE" \
     --project="$PROJECT_ID" --region="$REGION" \

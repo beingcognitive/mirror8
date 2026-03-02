@@ -14,7 +14,7 @@ APP_NAME = "mirror8"
 ANALYSIS_MODEL = "gemini-3-pro-preview"
 
 # Phase B: portrait image generation (selfie + prompt → portrait)
-IMAGE_MODEL = "gemini-2.5-flash-image"
+IMAGE_MODEL = "gemini-3.1-flash-image-preview"
 
 # Live conversation (Gemini Native Audio)
 LIVE_MODEL = "gemini-2.5-flash-native-audio-preview-12-2025"

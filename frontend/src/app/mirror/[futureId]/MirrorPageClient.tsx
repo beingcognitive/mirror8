@@ -76,18 +76,17 @@ export default function MirrorPageClient() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-mirror-800">
-        <Link href="/" className="text-xl font-bold gradient-text">
-          Mirror8
-        </Link>
+    <main className="relative min-h-screen">
+      {/* Minimal overlay header — just a back arrow */}
+      <div className="absolute top-0 left-0 right-0 z-20 p-4">
         <Link
           href="/futures"
-          className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-mirror-800/60 backdrop-blur-sm text-mirror-300 hover:text-white hover:bg-mirror-800/80 transition text-sm"
         >
-          Back to Futures
+          <span>&#8592;</span>
+          <span>Back</span>
         </Link>
-      </nav>
+      </div>
       <MirrorRoom sessionId={sessionId} future={future} accessToken={accessToken} />
     </main>
   );

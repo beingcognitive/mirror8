@@ -42,6 +42,12 @@ def create_session(user_id: str, analysis: dict) -> str:
     return session_id
 
 
+def update_session_analysis(session_id: str, analysis: dict) -> None:
+    """Update the analysis JSON column for an existing session."""
+    client = _get_client()
+    client.table("sessions").update({"analysis": analysis}).eq("id", session_id).execute()
+
+
 def set_future(session_id: str, future: FutureData) -> str | None:
     """Insert a future row and upload portrait to Storage. Returns portrait public URL."""
     client = _get_client()
@@ -162,3 +168,40 @@ def get_user_sessions(user_id: str) -> list[dict]:
         .execute()
     )
     return result.data
+
+
+def upload_selfie(session_id: str, selfie_bytes: bytes, selfie_mime: str) -> str:
+    """Upload the original selfie to Storage for later use. Returns the storage path."""
+    client = _get_client()
+    ext = "png" if "png" in selfie_mime else "jpg"
+    path = f"{session_id}/selfie.{ext}"
+    client.storage.from_("portraits").upload(
+        path,
+        selfie_bytes,
+        {"content-type": selfie_mime},
+    )
+    logger.info(f"Uploaded selfie for session {session_id}: {path}")
+    return path
+
+
+def get_selfie_bytes(selfie_path: str) -> bytes:
+    """Download selfie bytes from Storage."""
+    client = _get_client()
+    return client.storage.from_("portraits").download(selfie_path)
+
+
+def upload_live_portrait(
+    session_id: str, future_id: str, index: int, image_bytes: bytes, mime_type: str
+) -> str:
+    """Upload a live-generated portrait and return its public URL."""
+    client = _get_client()
+    ext = "png" if "png" in mime_type else "jpg"
+    path = f"{session_id}/{future_id}_live_{index}.{ext}"
+    client.storage.from_("portraits").upload(
+        path,
+        image_bytes,
+        {"content-type": mime_type},
+    )
+    url = client.storage.from_("portraits").get_public_url(path)
+    logger.info(f"Uploaded live portrait #{index} for {future_id}: {path}")
+    return url

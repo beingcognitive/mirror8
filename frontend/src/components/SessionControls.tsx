@@ -12,6 +12,7 @@ interface SessionControlsProps {
   onEnd: () => void;
   onToggleMic: () => void;
   onToggleCamera: () => void;
+  autoStarting?: boolean;
 }
 
 export default function SessionControls({
@@ -23,8 +24,12 @@ export default function SessionControls({
   onEnd,
   onToggleMic,
   onToggleCamera,
+  autoStarting,
 }: SessionControlsProps) {
   const isActive = status === "active";
+
+  // Hide controls while auto-start is attempting (overlay handles it)
+  if (autoStarting && !isActive) return null;
 
   return (
     <div className="flex items-center justify-center gap-4">

@@ -70,9 +70,15 @@ export interface WSErrorMessage {
   message: string;
 }
 
+export interface WSPortraitUpdateMessage {
+  type: "portrait_update";
+  url: string;
+}
+
 export type WSServerMessage =
   | WSTranscriptMessage
   | WSTurnCompleteMessage
   | WSInterruptedMessage
   | WSPongMessage
-  | WSErrorMessage;
+  | WSErrorMessage
+  | WSPortraitUpdateMessage;

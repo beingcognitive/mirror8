@@ -22,13 +22,17 @@ from app.auth import get_current_user, verify_ws_token
 from app.config import APP_NAME, FRONTEND_URL
 from app.generator import generate_all_futures
 from app.personas import ARCHETYPE_MAP, ARCHETYPES
+from app.live_portrait import generate_live_portrait, should_update_portrait
 from app.session_store import (
     create_session,
     get_conversations,
+    get_selfie_bytes,
     get_session,
     get_user_sessions,
     save_conversation,
     set_future,
+    update_session_analysis,
+    upload_selfie,
 )
 from app.tools.session_summary import get_session_insights
 
@@ -79,6 +83,15 @@ async def generate_futures_endpoint(
 
         # Create session in Supabase with analysis
         session_id = create_session(user_id, analysis)
+
+        # Upload selfie for later use in live portrait generation
+        try:
+            selfie_path = upload_selfie(session_id, selfie_bytes, selfie_mime)
+            analysis["selfie_path"] = selfie_path
+            analysis["selfie_mime"] = selfie_mime
+            update_session_analysis(session_id, analysis)
+        except Exception as e:
+            logger.warning(f"Failed to upload selfie for live portraits: {e}")
 
         # Store each future (DB row + portrait upload)
         futures_meta = []
@@ -211,6 +224,21 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
         persona_data = analysis.get("futures", {}).get(future_id, {})
 
     about_me = analysis.get("about_me", "")
+    appearance = analysis.get("appearance", {})
+
+    # Load selfie for live portrait generation
+    selfie_bytes = None
+    selfie_mime = analysis.get("selfie_mime", "image/jpeg")
+    selfie_path = analysis.get("selfie_path")
+    if selfie_path:
+        try:
+            selfie_bytes = get_selfie_bytes(selfie_path)
+            logger.info(f"Loaded selfie for live portraits ({len(selfie_bytes)} bytes)")
+        except Exception as e:
+            logger.warning(f"Could not load selfie for live portraits: {e}")
+
+    # Live portrait generation state
+    portrait_gen_state = {"in_flight": False, "index": 0, "turn_count": 0}
 
     # Create per-session Agent
     agent = create_mirror_agent(
@@ -397,6 +425,44 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 if event.turn_complete:
                     flush_pending()
                     await websocket.send_text(json.dumps({"type": "turn_complete"}))
+
+                    # Trigger live portrait generation
+                    portrait_gen_state["turn_count"] += 1
+                    if (
+                        selfie_bytes
+                        and portrait_gen_state["turn_count"] > 2
+                        and not portrait_gen_state["in_flight"]
+                    ):
+
+                        async def _try_portrait_update():
+                            try:
+                                portrait_gen_state["in_flight"] = True
+                                direction = await should_update_portrait(
+                                    transcript_log, persona_data
+                                )
+                                if direction:
+                                    portrait_gen_state["index"] += 1
+                                    url = await generate_live_portrait(
+                                        session_id=session_id,
+                                        future_id=future_id,
+                                        index=portrait_gen_state["index"],
+                                        selfie_bytes=selfie_bytes,
+                                        selfie_mime=selfie_mime,
+                                        appearance=appearance,
+                                        persona_data=persona_data,
+                                        portrait_direction=direction,
+                                        about_me=about_me,
+                                    )
+                                    if url:
+                                        await websocket.send_text(
+                                            json.dumps({"type": "portrait_update", "url": url})
+                                        )
+                            except Exception as e:
+                                logger.error(f"Live portrait update failed: {e}", exc_info=True)
+                            finally:
+                                portrait_gen_state["in_flight"] = False
+
+                        asyncio.create_task(_try_portrait_update())
 
         except WebSocketDisconnect:
             logger.info(f"Client disconnected (downstream): {session_id}")

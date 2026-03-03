@@ -4,10 +4,25 @@ import { forwardRef } from "react";
 
 interface CameraPreviewProps {
   isActive: boolean;
+  pipMode?: boolean;
 }
 
 const CameraPreview = forwardRef<HTMLVideoElement, CameraPreviewProps>(
-  ({ isActive }, ref) => {
+  ({ isActive, pipMode }, ref) => {
+    if (pipMode) {
+      return (
+        <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-mirror-600 bg-mirror-800 shadow-lg">
+          <video
+            ref={ref}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover -scale-x-100"
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border border-mirror-700 bg-mirror-800">
         <video

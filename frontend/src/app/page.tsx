@@ -109,7 +109,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="px-6 py-8 text-center text-mirror-500 text-sm">
         <p>
-          Built with Gemini Live API for the Gemini Live Agent Challenge.
+          Built with Gemini Live API.
         </p>
       </footer>
     </main>

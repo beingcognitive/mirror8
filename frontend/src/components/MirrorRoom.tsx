@@ -85,27 +85,27 @@ export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoo
           }
           break;
         case "turn_complete":
-          // Flush pending transcripts
-          if (pendingAgentText.current.trim()) {
-            addTranscript("agent", pendingAgentText.current.trim());
-            pendingAgentText.current = "";
-          }
+          // Flush pending transcripts (user first — they spoke before agent responded)
           if (pendingUserText.current.trim()) {
             addTranscript("user", pendingUserText.current.trim());
             pendingUserText.current = "";
+          }
+          if (pendingAgentText.current.trim()) {
+            addTranscript("agent", pendingAgentText.current.trim());
+            pendingAgentText.current = "";
           }
           setMood("listening");
           break;
         case "interrupted":
           playback.clearBuffer();
-          // Flush what we have so far
-          if (pendingAgentText.current.trim()) {
-            addTranscript("agent", pendingAgentText.current.trim());
-            pendingAgentText.current = "";
-          }
+          // Flush what we have so far (user first)
           if (pendingUserText.current.trim()) {
             addTranscript("user", pendingUserText.current.trim());
             pendingUserText.current = "";
+          }
+          if (pendingAgentText.current.trim()) {
+            addTranscript("agent", pendingAgentText.current.trim());
+            pendingAgentText.current = "";
           }
           setMood("listening");
           break;

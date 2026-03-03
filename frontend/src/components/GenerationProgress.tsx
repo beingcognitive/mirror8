@@ -3,18 +3,17 @@
 import { useState, useEffect } from "react";
 
 const STEPS = [
-  "Analyzing your features...",
-  "Imagining your possible futures...",
-  "Creating personalized backstories...",
-  "Generating The Visionary portrait...",
-  "Generating The Healer portrait...",
-  "Generating The Artist portrait...",
-  "Generating The Explorer portrait...",
-  "Generating The Sage portrait...",
-  "Generating The Guardian portrait...",
-  "Generating The Maverick portrait...",
-  "Generating The Mystic portrait...",
-  "Finalizing your 8 futures...",
+  "Studying your features...",
+  "Imagining who you could become...",
+  "Writing the stories of your futures...",
+  "Sketching a bold new path for you...",
+  "Painting a life of adventure...",
+  "Envisioning your creative side...",
+  "Crafting a future built on wisdom...",
+  "Rendering a world you might lead...",
+  "Adding the finishing details...",
+  "Bringing your futures to life...",
+  "Almost there — 8 lives taking shape...",
 ];
 
 export default function GenerationProgress() {

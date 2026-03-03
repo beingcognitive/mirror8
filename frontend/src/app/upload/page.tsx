@@ -13,6 +13,7 @@ export default function UploadPage() {
   const { user, loading, getAccessToken } = useAuth();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorRetryable, setErrorRetryable] = useState(false);
 
   // Profile step state
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
@@ -62,6 +63,7 @@ export default function UploadPage() {
       router.push("/futures");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      setErrorRetryable((err as any)?.retryable === true);
       setGenerating(false);
     }
   };
@@ -131,8 +133,16 @@ export default function UploadPage() {
             </div>
 
             {error && (
-              <div className="px-4 py-3 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm text-center">
-                {error}
+              <div className="w-full px-4 py-4 bg-red-900/30 border border-red-800 rounded-xl text-center">
+                <p className="text-red-300 text-sm">{error}</p>
+                {errorRetryable && (
+                  <button
+                    onClick={handleGenerate}
+                    className="mt-3 px-6 py-2 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold hover:opacity-90 transition text-sm"
+                  >
+                    Try Again
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -148,8 +158,16 @@ export default function UploadPage() {
             </p>
             <SelfieCapture onCapture={handleCapture} />
             {error && (
-              <div className="mt-6 px-4 py-3 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm max-w-md text-center">
-                {error}
+              <div className="mt-6 px-4 py-4 bg-red-900/30 border border-red-800 rounded-xl max-w-md text-center">
+                <p className="text-red-300 text-sm">{error}</p>
+                {errorRetryable && (
+                  <button
+                    onClick={handleGenerate}
+                    className="mt-3 px-6 py-2 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold hover:opacity-90 transition text-sm"
+                  >
+                    Try Again
+                  </button>
+                )}
               </div>
             )}
           </>

@@ -22,8 +22,10 @@ export async function generateFutures(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: "Unknown error" }));
-    throw new Error(error.detail || error.error || "Generation failed");
+    const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+    const err = new Error(errorData.detail || errorData.error || "Generation failed");
+    (err as any).retryable = errorData.retryable === true;
+    throw err;
   }
 
   return response.json();

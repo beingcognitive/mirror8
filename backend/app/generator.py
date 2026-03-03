@@ -171,43 +171,56 @@ async def phase_a_analyze(selfie_bytes: bytes, selfie_mime: str, about_me: str =
         logger.info("Phase A mode: archetype-guided")
 
     models = [ANALYSIS_MODEL, ANALYSIS_MODEL_FALLBACK]
+    last_error = None
     for model in models:
-        try:
-            response = await client.aio.models.generate_content(
-                model=model,
-                contents=[
-                    types.Content(
-                        parts=[
-                            types.Part.from_bytes(data=selfie_bytes, mime_type=selfie_mime),
-                            types.Part.from_text(text=prompt),
-                        ]
-                    )
-                ],
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.9,
-                ),
-            )
-            text = response.text.strip()
-            logger.info(f"Phase A complete via {model} ({len(text)} chars)")
-            result = json.loads(text)
+        max_retries = 3 if model == models[-1] else 1
+        for attempt in range(max_retries):
+            try:
+                response = await client.aio.models.generate_content(
+                    model=model,
+                    contents=[
+                        types.Content(
+                            parts=[
+                                types.Part.from_bytes(data=selfie_bytes, mime_type=selfie_mime),
+                                types.Part.from_text(text=prompt),
+                            ]
+                        )
+                    ],
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.9,
+                    ),
+                )
+                text = response.text.strip()
+                logger.info(f"Phase A complete via {model} ({len(text)} chars)")
+                result = json.loads(text)
 
-            # Remap neutral keys (future_1..future_8) → archetype IDs
-            if freeform:
-                archetype_ids = [a.id for a in ARCHETYPES]
-                neutral_futures = result.get("futures", {})
-                remapped = {}
-                for i, aid in enumerate(archetype_ids):
-                    remapped[aid] = neutral_futures.get(f"future_{i+1}", {})
-                result["futures"] = remapped
+                # Remap neutral keys (future_1..future_8) → archetype IDs
+                if freeform:
+                    archetype_ids = [a.id for a in ARCHETYPES]
+                    neutral_futures = result.get("futures", {})
+                    remapped = {}
+                    for i, aid in enumerate(archetype_ids):
+                        remapped[aid] = neutral_futures.get(f"future_{i+1}", {})
+                    result["futures"] = remapped
 
-            return result
-        except Exception as e:
-            err = str(e)
-            if model != models[-1] and ("503" in err or "500" in err):
-                logger.warning(f"Phase A {model} failed ({err[:80]}), falling back to {models[-1]}")
-                continue
-            raise
+                return result
+            except Exception as e:
+                last_error = e
+                err = str(e)
+                if "503" in err or "500" in err:
+                    if attempt < max_retries - 1:
+                        wait = (2 ** attempt) + random.random()
+                        logger.warning(f"Phase A {model} attempt {attempt+1} failed (503), retrying in {wait:.1f}s")
+                        await asyncio.sleep(wait)
+                        continue
+                    if model != models[-1]:
+                        logger.warning(f"Phase A {model} failed ({err[:80]}), falling back to {models[-1]}")
+                        break
+                    # Last model, last retry — raise
+                    raise
+                raise
+    raise last_error  # type: ignore[misc]
 
 
 async def phase_b_generate_portrait(

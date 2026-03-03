@@ -114,7 +114,7 @@ async def generate_futures_endpoint(
     except Exception as e:
         logger.error(f"Generation failed: {e}", exc_info=True)
         err_str = str(e)
-        is_capacity = "503" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str
+        is_capacity = "503" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str or isinstance(e, TimeoutError)
         if is_capacity:
             return JSONResponse(
                 status_code=503,

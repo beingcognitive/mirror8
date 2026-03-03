@@ -13,13 +13,21 @@ export async function generateFutures(
     formData.append("about_me", aboutMe);
   }
 
-  const response = await fetch(`${API_URL}/api/generate`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: formData,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/api/generate`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+  } catch {
+    // Network error, timeout, or connection refused — always retryable
+    const err = new Error("Connection lost. The server may be busy — please try again.");
+    (err as any).retryable = true;
+    throw err;
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: "Unknown error" }));

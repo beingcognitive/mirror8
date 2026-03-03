@@ -176,20 +176,23 @@ async def phase_a_analyze(selfie_bytes: bytes, selfie_mime: str, about_me: str =
         max_retries = 3 if model == models[-1] else 1
         for attempt in range(max_retries):
             try:
-                response = await client.aio.models.generate_content(
-                    model=model,
-                    contents=[
-                        types.Content(
-                            parts=[
-                                types.Part.from_bytes(data=selfie_bytes, mime_type=selfie_mime),
-                                types.Part.from_text(text=prompt),
-                            ]
-                        )
-                    ],
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        temperature=0.9,
+                response = await asyncio.wait_for(
+                    client.aio.models.generate_content(
+                        model=model,
+                        contents=[
+                            types.Content(
+                                parts=[
+                                    types.Part.from_bytes(data=selfie_bytes, mime_type=selfie_mime),
+                                    types.Part.from_text(text=prompt),
+                                ]
+                            )
+                        ],
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            temperature=0.9,
+                        ),
                     ),
+                    timeout=30,  # 30s max per attempt — prevents Gemini SDK internal retries from hanging
                 )
                 text = response.text.strip()
                 logger.info(f"Phase A complete via {model} ({len(text)} chars)")
@@ -205,6 +208,17 @@ async def phase_a_analyze(selfie_bytes: bytes, selfie_mime: str, about_me: str =
                     result["futures"] = remapped
 
                 return result
+            except asyncio.TimeoutError:
+                last_error = TimeoutError(f"Phase A {model} timed out after 30s")
+                logger.warning(f"Phase A {model} attempt {attempt+1} timed out")
+                if model != models[-1]:
+                    logger.warning(f"Falling back to {models[-1]}")
+                    break
+                if attempt < max_retries - 1:
+                    wait = (2 ** attempt) + random.random()
+                    await asyncio.sleep(wait)
+                    continue
+                raise last_error
             except Exception as e:
                 last_error = e
                 err = str(e)

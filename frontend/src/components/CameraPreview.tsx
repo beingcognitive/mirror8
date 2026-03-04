@@ -11,7 +11,7 @@ const CameraPreview = forwardRef<HTMLVideoElement, CameraPreviewProps>(
   ({ isActive, pipMode }, ref) => {
     if (pipMode) {
       return (
-        <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-mirror-600 bg-mirror-800 shadow-lg">
+        <div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-mirror-600 bg-mirror-800 shadow-lg">
           <video
             ref={ref}
             autoPlay

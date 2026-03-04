@@ -36,9 +36,11 @@ export default function FutureCard({
       <div className="p-4 flex flex-col flex-1">
         <h3 className="font-bold text-lg gradient-text">{future.name}</h3>
         <p className="text-mirror-300 text-sm mb-2">{future.title}</p>
-        <p className="text-mirror-400 text-xs flex-1 line-clamp-3 mb-4">
-          {future.backstory}
-        </p>
+        <div className="flex-1 max-h-20 overflow-y-auto mb-4 scrollbar-thin">
+          <p className="text-mirror-400 text-xs">
+            {future.backstory}
+          </p>
+        </div>
         <button
           onClick={() => onSelect(future.id)}
           className="w-full py-2.5 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-medium text-sm hover:opacity-90 transition"

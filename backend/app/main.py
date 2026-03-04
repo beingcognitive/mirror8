@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from google.adk.agents.live_request_queue import LiveRequestQueue
 from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.adk.runners import Runner
@@ -128,6 +128,87 @@ async def generate_futures_endpoint(
             status_code=500,
             content={"error": "Generation failed", "detail": str(e)},
         )
+
+
+@app.post("/api/generate-stream")
+async def generate_futures_stream(
+    file: UploadFile = File(...),
+    about_me: str = Form(""),
+    user_id: str = Depends(get_current_user),
+):
+    """SSE streaming version of /api/generate — sends progress events."""
+    selfie_bytes = await file.read()
+    selfie_mime = file.content_type or "image/jpeg"
+
+    logger.info(f"Starting streaming generation for user {user_id} ({len(selfie_bytes)} bytes)")
+
+    async def event_stream():
+        progress_queue: asyncio.Queue[dict] = asyncio.Queue()
+
+        def on_progress(event_type: str, data: dict):
+            progress_queue.put_nowait({"type": event_type, **data})
+
+        try:
+            # Run generation with progress callbacks
+            gen_task = asyncio.create_task(
+                generate_all_futures(selfie_bytes, selfie_mime, about_me, on_progress=on_progress)
+            )
+
+            # Drain progress events while generation runs
+            while not gen_task.done():
+                try:
+                    event = await asyncio.wait_for(progress_queue.get(), timeout=0.5)
+                    yield f"data: {json.dumps(event)}\n\n"
+                except asyncio.TimeoutError:
+                    continue
+
+            # Get the result (will re-raise if generation failed)
+            analysis, futures = gen_task.result()
+
+            # Drain any remaining progress events
+            while not progress_queue.empty():
+                event = progress_queue.get_nowait()
+                yield f"data: {json.dumps(event)}\n\n"
+
+            yield f"data: {json.dumps({'type': 'storing'})}\n\n"
+
+            # Store about_me in analysis
+            analysis["about_me"] = about_me
+
+            # Create session
+            session_id = create_session(user_id, analysis)
+
+            # Upload selfie
+            try:
+                selfie_path = upload_selfie(session_id, selfie_bytes, selfie_mime)
+                analysis["selfie_path"] = selfie_path
+                analysis["selfie_mime"] = selfie_mime
+                update_session_analysis(session_id, analysis)
+            except Exception as e:
+                logger.warning(f"Failed to upload selfie: {e}")
+
+            # Store each future
+            futures_meta = []
+            for future in futures:
+                portrait_url = set_future(session_id, future)
+                futures_meta.append({
+                    "id": future.archetype_id,
+                    "name": future.name,
+                    "title": future.title,
+                    "backstory": future.backstory,
+                    "portraitUrl": portrait_url,
+                    "hasPortrait": future.portrait_bytes is not None,
+                })
+
+            yield f"data: {json.dumps({'type': 'complete', 'sessionId': session_id, 'futures': futures_meta})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Streaming generation failed: {e}", exc_info=True)
+            err_str = str(e)
+            is_capacity = "503" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str or isinstance(e, TimeoutError)
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Our AI models are experiencing high demand right now. This is usually temporary.' if is_capacity else str(e), 'retryable': is_capacity})}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 @app.get("/api/session/{session_id}")

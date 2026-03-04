@@ -9,6 +9,7 @@ import base64
 import json
 import logging
 import random
+from collections.abc import Callable
 
 from google import genai
 from google.genai import types
@@ -398,33 +399,48 @@ Half-body portrait, warm lighting."""
 
 
 async def generate_all_futures(
-    selfie_bytes: bytes, selfie_mime: str, about_me: str = ""
+    selfie_bytes: bytes, selfie_mime: str, about_me: str = "",
+    on_progress: Callable[[str, dict], None] | None = None,
 ) -> tuple[dict, list[FutureData]]:
     """Full generation pipeline: analyze selfie, then generate 8 portraits.
 
     Returns (analysis_dict, list_of_FutureData).
+    on_progress(event_type, data) is called at each milestone if provided.
     """
+
+    def emit(event_type: str, **kwargs):
+        if on_progress:
+            on_progress(event_type, kwargs)
 
     # Phase A: Analyze selfie
     logger.info("Phase A: Analyzing selfie...")
+    emit("analyzing")
     analysis = await phase_a_analyze(selfie_bytes, selfie_mime, about_me)
+    emit("analysis_complete")
 
     appearance = analysis.get("appearance", {})
     futures_data = analysis.get("futures", {})
 
-    # Phase B: Generate portraits concurrently (max 4 at a time)
+    # Phase B: Generate portraits concurrently (max 2 at a time)
     logger.info("Phase B: Generating 8 portraits...")
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_GENERATIONS)
+    portraits_done = {"count": 0}
+
+    async def _generate_with_progress(archetype, future_data):
+        result = await phase_b_generate_portrait(
+            selfie_bytes, selfie_mime, archetype, appearance, future_data, semaphore, about_me
+        )
+        portraits_done["count"] += 1
+        name = future_data.get("personalized_name", archetype.name)
+        emit("portrait_done", index=portraits_done["count"], total=8, name=name)
+        return result
 
     tasks = []
     for archetype in ARCHETYPES:
         future_data = futures_data.get(archetype.id, {})
-        tasks.append(
-            phase_b_generate_portrait(
-                selfie_bytes, selfie_mime, archetype, appearance, future_data, semaphore, about_me
-            )
-        )
+        tasks.append(_generate_with_progress(archetype, future_data))
 
+    emit("portraits_starting", total=8)
     futures = await asyncio.gather(*tasks)
     logger.info(f"Generated {sum(1 for f in futures if f.portrait_bytes)} / 8 portraits")
 

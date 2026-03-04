@@ -2,9 +2,21 @@ import { GenerationResult } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-export async function generateFutures(
+export interface GenerationProgress {
+  type: "analyzing" | "analysis_complete" | "portraits_starting" | "portrait_done" | "storing" | "complete" | "error";
+  index?: number;
+  total?: number;
+  name?: string;
+  message?: string;
+  retryable?: boolean;
+  sessionId?: string;
+  futures?: GenerationResult["futures"];
+}
+
+export async function generateFuturesStream(
   file: File,
   accessToken: string,
+  onProgress: (event: GenerationProgress) => void,
   aboutMe?: string,
 ): Promise<GenerationResult> {
   const formData = new FormData();
@@ -15,7 +27,7 @@ export async function generateFutures(
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}/api/generate`, {
+    response = await fetch(`${API_URL}/api/generate-stream`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -23,7 +35,6 @@ export async function generateFutures(
       body: formData,
     });
   } catch {
-    // Network error, timeout, or connection refused — always retryable
     const err = new Error("Connection lost. The server may be busy — please try again.");
     (err as any).retryable = true;
     throw err;
@@ -36,7 +47,40 @@ export async function generateFutures(
     throw err;
   }
 
-  return response.json();
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let result: GenerationResult | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const data: GenerationProgress = JSON.parse(line.slice(6));
+      onProgress(data);
+
+      if (data.type === "complete" && data.sessionId && data.futures) {
+        result = { sessionId: data.sessionId, futures: data.futures };
+      }
+      if (data.type === "error") {
+        const err = new Error(data.message || "Generation failed");
+        (err as any).retryable = data.retryable === true;
+        throw err;
+      }
+    }
+  }
+
+  if (!result) {
+    throw new Error("Generation ended without result");
+  }
+
+  return result;
 }
 
 export async function getSession(

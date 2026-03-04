@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SelfieCapture from "@/components/SelfieCapture";
 import GenerationProgress from "@/components/GenerationProgress";
-import { generateFutures } from "@/lib/api";
+import { generateFuturesStream, GenerationProgress as ProgressEvent } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 
 export default function UploadPage() {
@@ -14,6 +14,7 @@ export default function UploadPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorRetryable, setErrorRetryable] = useState(false);
+  const [progressEvent, setProgressEvent] = useState<ProgressEvent | null>(null);
 
   // Profile step state
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
@@ -51,6 +52,8 @@ export default function UploadPage() {
     if (!capturedFile) return;
     setGenerating(true);
     setError(null);
+    setErrorRetryable(false);
+    setProgressEvent(null);
 
     try {
       const token = await getAccessToken();
@@ -58,13 +61,23 @@ export default function UploadPage() {
         router.push("/");
         return;
       }
-      const result = await generateFutures(capturedFile, token, aboutMe || undefined);
+      const result = await generateFuturesStream(
+        capturedFile,
+        token,
+        (event) => setProgressEvent(event),
+        aboutMe || undefined,
+      );
       sessionStorage.setItem("mirror8_session", JSON.stringify(result));
       router.push("/futures");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setErrorRetryable((err as any)?.retryable === true);
-      setGenerating(false);
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      const retryable = (err as any)?.retryable === true;
+      setError(message);
+      setErrorRetryable(retryable);
+      // If retryable, keep showing progress screen with error overlay
+      if (!retryable) {
+        setGenerating(false);
+      }
     }
   };
 
@@ -80,7 +93,12 @@ export default function UploadPage() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         {generating ? (
-          <GenerationProgress />
+          <GenerationProgress
+            event={progressEvent}
+            error={error}
+            retryable={errorRetryable}
+            onRetry={handleGenerate}
+          />
         ) : capturedFile && previewUrl ? (
           /* ── Profile Step ── */
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
@@ -160,14 +178,6 @@ export default function UploadPage() {
             {error && (
               <div className="mt-6 px-4 py-4 bg-red-900/30 border border-red-800 rounded-xl max-w-md text-center">
                 <p className="text-red-300 text-sm">{error}</p>
-                {errorRetryable && (
-                  <button
-                    onClick={handleGenerate}
-                    className="mt-3 px-6 py-2 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold hover:opacity-90 transition text-sm"
-                  >
-                    Try Again
-                  </button>
-                )}
               </div>
             )}
           </>

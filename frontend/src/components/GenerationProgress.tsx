@@ -90,7 +90,7 @@ export default function GenerationProgress({
 
       {!error && (
         <p className="text-mirror-500 text-sm">
-          This may take a minute. Your 8 future selves are being imagined...
+          This may take a few minutes. Your 8 future selves are being imagined...
         </p>
       )}
     </div>

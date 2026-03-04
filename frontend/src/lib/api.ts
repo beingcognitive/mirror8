@@ -34,7 +34,8 @@ export async function generateFuturesStream(
       },
       body: formData,
     });
-  } catch {
+  } catch (e) {
+    console.error("[Mirror8] Network error during generation:", e);
     const err = new Error("Connection lost. The server may be busy — please try again.");
     (err as any).retryable = true;
     throw err;
@@ -42,6 +43,7 @@ export async function generateFuturesStream(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+    console.error("[Mirror8] Generation API error:", response.status, errorData);
     const err = new Error(errorData.detail || errorData.error || "Generation failed");
     (err as any).retryable = errorData.retryable === true;
     throw err;
@@ -62,21 +64,32 @@ export async function generateFuturesStream(
 
     for (const line of lines) {
       if (!line.startsWith("data: ")) continue;
-      const data: GenerationProgress = JSON.parse(line.slice(6));
-      onProgress(data);
+      try {
+        const data: GenerationProgress = JSON.parse(line.slice(6));
+        console.log("[Mirror8] Progress:", data.type, data);
+        onProgress(data);
 
-      if (data.type === "complete" && data.sessionId && data.futures) {
-        result = { sessionId: data.sessionId, futures: data.futures };
-      }
-      if (data.type === "error") {
-        const err = new Error(data.message || "Generation failed");
-        (err as any).retryable = data.retryable === true;
-        throw err;
+        if (data.type === "complete" && data.sessionId && data.futures) {
+          result = { sessionId: data.sessionId, futures: data.futures };
+        }
+        if (data.type === "error") {
+          console.error("[Mirror8] Generation error from server:", data.message, { retryable: data.retryable });
+          const err = new Error(data.message || "Generation failed");
+          (err as any).retryable = data.retryable === true;
+          throw err;
+        }
+      } catch (e) {
+        if (e instanceof Error && e.message !== "Generation failed" && !(e as any).retryable) {
+          console.error("[Mirror8] Failed to parse SSE event:", line, e);
+        } else {
+          throw e;
+        }
       }
     }
   }
 
   if (!result) {
+    console.error("[Mirror8] Stream ended without a complete event");
     throw new Error("Generation ended without result");
   }
 

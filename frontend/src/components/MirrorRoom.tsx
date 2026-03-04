@@ -233,7 +233,7 @@ export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoo
       )}
 
       {/* Hero portrait section */}
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 pt-16 pb-4">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 pt-16 pb-4 relative">
         <FutureAvatar
           portraitUrl={currentPortraitUrl}
           name={future.name}
@@ -241,20 +241,19 @@ export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoo
           heroMode
           title={future.title}
         />
+        {/* PiP webcam — positioned near the portrait */}
+        <div className="absolute bottom-4 right-[calc(50%-12rem)] md:right-[calc(50%-14rem)] z-10">
+          <CameraPreview
+            ref={cameraVideoRef}
+            isActive={isCameraOn && status === "active"}
+            pipMode
+          />
+        </div>
       </div>
 
       {/* Captions area */}
       <div className="pb-2">
         <ConversationCaptions entries={transcripts} futureName={future.name} />
-      </div>
-
-      {/* PiP webcam */}
-      <div className="absolute bottom-28 right-4 z-10">
-        <CameraPreview
-          ref={cameraVideoRef}
-          isActive={isCameraOn && status === "active"}
-          pipMode
-        />
       </div>
 
       {/* Bottom controls */}

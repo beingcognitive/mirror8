@@ -101,7 +101,7 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
       />
 
       {/* Preview or Camera */}
-      <div className="w-72 h-72 md:w-96 md:h-96 rounded-2xl overflow-hidden bg-mirror-800 border border-mirror-700 relative">
+      <div className="w-60 h-60 md:w-96 md:h-96 rounded-2xl overflow-hidden bg-mirror-800 border border-mirror-700 relative">
         {preview ? (
           <img
             src={preview}

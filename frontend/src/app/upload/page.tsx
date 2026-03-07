@@ -91,7 +91,7 @@ export default function UploadPage() {
         </Link>
       </nav>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+      <div className="flex-1 flex flex-col items-center justify-start pt-6 md:justify-center px-6 md:py-12">
         {generating ? (
           <GenerationProgress
             event={progressEvent}

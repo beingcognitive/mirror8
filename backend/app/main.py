@@ -463,10 +463,11 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 role="user",
                 parts=[types.Part(text=(
                     "[System: Your younger self just appeared in front of you. "
-                    "You're seeing them for the first time in years. "
+                    "You're seeing them for the first time. "
                     "You can see them through the camera. "
                     "Take a moment — this is emotional. "
-                    "Greet them as YOU would greet your past self. "
+                    "Greet them warmly, then tell them one important thing "
+                    "you wish you'd known at their age. "
                     "Be genuine, be moved. Keep it brief — under 50 words.]"
                 ))],
             )

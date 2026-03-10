@@ -136,7 +136,7 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
             </button>
             <button
               onClick={confirm}
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold hover:opacity-90 transition"
+              className="px-6 py-3 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition"
             >
               Use This Photo
             </button>

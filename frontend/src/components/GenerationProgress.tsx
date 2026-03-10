@@ -56,19 +56,19 @@ export default function GenerationProgress({
     <div className="flex flex-col items-center gap-8 text-center max-w-md mx-auto">
       {/* Animated orb */}
       <div className="relative w-32 h-32">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-mirror-500 to-accent opacity-30 animate-ping" />
-        <div className="absolute inset-4 rounded-full bg-gradient-to-br from-mirror-500 to-accent opacity-60 animate-pulse" />
-        <div className="absolute inset-8 rounded-full bg-gradient-to-br from-mirror-400 to-accent" />
+        <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping" />
+        <div className="absolute inset-4 rounded-full bg-accent/40 animate-pulse" />
+        <div className="absolute inset-8 rounded-full bg-accent" />
       </div>
 
-      <h2 className="text-2xl font-bold gradient-text">Creating Your Futures</h2>
+      <h2 className="text-2xl font-serif text-accent">Creating Your Futures</h2>
 
       <p className="text-mirror-200 text-lg">{message}</p>
 
       {/* Progress bar */}
       <div className="w-full h-2 bg-mirror-800 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-mirror-500 to-accent transition-all duration-700 ease-out rounded-full"
+          className="h-full bg-accent transition-all duration-700 ease-out rounded-full"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -80,7 +80,7 @@ export default function GenerationProgress({
           {retryable && onRetry && (
             <button
               onClick={onRetry}
-              className="mt-3 px-6 py-2 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold hover:opacity-90 transition text-sm"
+              className="mt-3 px-6 py-2 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition text-sm"
             >
               Try Again
             </button>

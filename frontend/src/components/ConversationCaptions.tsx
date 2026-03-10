@@ -24,7 +24,7 @@ export default function ConversationCaptions({
           className="caption-fade-in flex justify-end"
         >
           <div className="bg-mirror-600/80 backdrop-blur-sm rounded-2xl px-4 py-2.5 border border-mirror-500/30 max-w-[80%]">
-            <p className="text-sm text-white">{lastUser.text}</p>
+            <p className="text-sm text-mirror-100">{lastUser.text}</p>
           </div>
         </div>
       )}

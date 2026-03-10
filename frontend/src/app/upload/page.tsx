@@ -86,7 +86,7 @@ export default function UploadPage() {
   return (
     <main className="min-h-screen flex flex-col">
       <nav className="flex items-center justify-between px-6 py-4">
-        <Link href="/" className="text-xl font-bold gradient-text">
+        <Link href="/" className="text-xl font-serif gradient-text">
           Mirror8
         </Link>
       </nav>
@@ -103,7 +103,7 @@ export default function UploadPage() {
           /* ── Profile Step ── */
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             {/* Selfie thumbnail */}
-            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-mirror-600 shadow-lg shadow-mirror-500/20">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-mirror-600 shadow-lg shadow-mirror-900/40">
               <img
                 src={previewUrl}
                 alt="Your selfie"
@@ -112,10 +112,10 @@ export default function UploadPage() {
             </div>
 
             <div className="text-center">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">
+              <h1 className="text-2xl md:text-3xl font-serif mb-2">
                 Before we imagine your futures...
               </h1>
-              <p className="text-mirror-100 text-sm max-w-md">
+              <p className="text-mirror-200 text-sm max-w-md">
                 Tell us a bit about yourself so your future selves actually know you.
                 The more you share, the more personal they become.
               </p>
@@ -127,7 +127,7 @@ export default function UploadPage() {
                 value={aboutMe}
                 onChange={(e) => setAboutMe(e.target.value)}
                 placeholder={"e.g. I'm a 28-year-old software engineer in Seoul.\nMy goal for this year is to launch my own AI startup.\nI love building things but I'm scared of leaving my stable job."}
-                className="w-full h-36 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-white placeholder:text-mirror-500 text-sm leading-relaxed resize-none focus:outline-none focus:border-mirror-500 focus:ring-1 focus:ring-mirror-500/30 transition"
+                className="w-full h-36 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-mirror-100 placeholder:text-mirror-500 text-sm leading-relaxed resize-none focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition"
               />
               <p className="text-mirror-300 text-xs mt-2 text-center">
                 Age, goals, dreams, fears — anything you want your future self to know.
@@ -144,7 +144,7 @@ export default function UploadPage() {
               </button>
               <button
                 onClick={handleGenerate}
-                className="flex-1 py-3 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold hover:opacity-90 transition text-sm"
+                className="flex-1 py-3 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition text-sm"
               >
                 {aboutMe.trim() ? "Meet My Future Selves" : "Skip & Generate"}
               </button>
@@ -156,7 +156,7 @@ export default function UploadPage() {
                 {errorRetryable && (
                   <button
                     onClick={handleGenerate}
-                    className="mt-3 px-6 py-2 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold hover:opacity-90 transition text-sm"
+                    className="mt-3 px-6 py-2 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition text-sm"
                   >
                     Try Again
                   </button>
@@ -167,7 +167,7 @@ export default function UploadPage() {
         ) : (
           /* ── Selfie Capture Step ── */
           <>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-center">
+            <h1 className="text-3xl md:text-4xl font-serif mb-2 text-center">
               Upload Your Selfie
             </h1>
             <p className="text-mirror-300 mb-8 text-center max-w-md">

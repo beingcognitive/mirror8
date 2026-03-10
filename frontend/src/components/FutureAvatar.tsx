@@ -67,7 +67,7 @@ export default function FutureAvatar({
   return (
     <div className="flex flex-col items-center gap-3">
       <div
-        className={`${sizeClass} rounded-full overflow-hidden border-2 border-mirror-500 ${moodClass} relative`}
+        className={`${sizeClass} rounded-full overflow-hidden border-2 border-accent/40 ${moodClass} relative`}
       >
         {/* Previous image (fading out) */}
         {prevUrl && transitioning && (
@@ -91,7 +91,7 @@ export default function FutureAvatar({
         )}
       </div>
       <div className="text-center">
-        <p className={`font-semibold gradient-text ${heroMode ? "text-xl" : ""}`}>
+        <p className={`font-serif text-accent ${heroMode ? "text-xl" : ""}`}>
           {name}
         </p>
         {heroMode && title && (

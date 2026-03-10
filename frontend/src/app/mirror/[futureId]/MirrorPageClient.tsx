@@ -81,7 +81,7 @@ export default function MirrorPageClient() {
       <div className="absolute top-0 left-0 right-0 z-20 p-4">
         <Link
           href="/futures"
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-mirror-800/60 backdrop-blur-sm text-mirror-300 hover:text-white hover:bg-mirror-800/80 transition text-sm"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-mirror-800/60 backdrop-blur-sm text-mirror-300 hover:text-mirror-100 hover:bg-mirror-800/80 transition text-sm"
         >
           <span>&#8592;</span>
           <span>Back</span>

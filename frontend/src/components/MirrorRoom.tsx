@@ -197,7 +197,7 @@ export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoo
           }}
         >
           {/* Portrait */}
-          <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-2 border-mirror-500 avatar-idle mb-6">
+          <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-2 border-accent/40 avatar-idle mb-6">
             {currentPortraitUrl ? (
               <img
                 src={currentPortraitUrl}
@@ -212,7 +212,7 @@ export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoo
           </div>
 
           {/* Name & title */}
-          <h2 className="text-2xl font-bold gradient-text mb-1">{future.name}</h2>
+          <h2 className="text-2xl font-serif text-accent mb-1">{future.name}</h2>
           <p className="text-mirror-300 text-sm mb-6">{future.title}</p>
 
           {/* Full backstory (not truncated) */}
@@ -222,7 +222,7 @@ export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoo
 
           {/* CTA */}
           <div className="flex flex-col items-center gap-2">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center">
               <span className="text-2xl">🎙️</span>
             </div>
             <p className="text-mirror-300 text-sm animate-pulse">

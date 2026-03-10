@@ -36,7 +36,7 @@ export default function TranscriptPanel({
           <div
             className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${
               entry.role === "user"
-                ? "bg-mirror-600 text-white rounded-br-sm"
+                ? "bg-mirror-600 text-mirror-100 rounded-br-sm"
                 : "bg-mirror-800 border border-mirror-700 text-mirror-100 rounded-bl-sm"
             }`}
           >

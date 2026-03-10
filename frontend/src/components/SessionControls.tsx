@@ -36,7 +36,7 @@ export default function SessionControls({
       {status === "idle" || status === "ended" || status === "error" ? (
         <button
           onClick={onStart}
-          className="px-8 py-3 rounded-full bg-gradient-to-r from-mirror-500 to-accent-dim text-white font-semibold hover:opacity-90 transition"
+          className="px-8 py-3 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition"
         >
           {status === "error" ? "Retry Connection" : "Start Conversation"}
         </button>

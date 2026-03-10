@@ -34,8 +34,8 @@ export default function FutureCard({
 
       {/* Info */}
       <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-serif text-lg text-accent">{future.name}</h3>
-        <p className="text-mirror-300 text-sm mb-2">{future.title}</p>
+        <h3 className="font-serif text-lg text-accent min-h-[3.5rem]">{future.name}</h3>
+        <p className="text-mirror-300 text-sm mb-2 min-h-[2.5rem]">{future.title}</p>
         <div className="flex-1 max-h-20 overflow-y-auto mb-4 scrollbar-thin">
           <p className="text-mirror-400 text-xs">
             {future.backstory}
@@ -43,7 +43,7 @@ export default function FutureCard({
         </div>
         <button
           onClick={() => onSelect(future.id)}
-          className="w-full py-2.5 rounded-full bg-accent text-mirror-900 font-medium text-sm hover:bg-accent-dim transition"
+          className="w-full py-2.5 rounded-full bg-accent text-mirror-900 font-medium text-sm hover:bg-accent-dim transition mt-auto"
         >
           Talk to Me
         </button>

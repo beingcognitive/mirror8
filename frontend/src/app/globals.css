@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-mirror-900: #111110;
-  --color-mirror-800: #1c1a17;
-  --color-mirror-700: #2a2722;
-  --color-mirror-600: #3d3833;
-  --color-mirror-500: #564f48;
-  --color-mirror-400: #7a7269;
-  --color-mirror-300: #a39a90;
-  --color-mirror-200: #c8bfb4;
-  --color-mirror-100: #e4ddd5;
-  --color-mirror-50: #f4f0eb;
-  --color-accent: #c9956b;
-  --color-accent-dim: #a67c52;
+  --color-mirror-900: #0c0c0e;
+  --color-mirror-800: #161619;
+  --color-mirror-700: #232328;
+  --color-mirror-600: #333338;
+  --color-mirror-500: #4a4a52;
+  --color-mirror-400: #6b6b75;
+  --color-mirror-300: #9494a0;
+  --color-mirror-200: #bdbdc7;
+  --color-mirror-100: #e0e0e6;
+  --color-mirror-50: #f2f2f5;
+  --color-accent: #2dd4bf;
+  --color-accent-dim: #20b2a0;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "DM Serif Display", "Georgia", serif;
 }
@@ -22,19 +22,19 @@ body {
   color: var(--color-mirror-100);
 }
 
-/* Warm glow animation for avatar */
+/* Teal glow animation for avatar */
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(201, 149, 107, 0.25); }
-  50% { box-shadow: 0 0 40px rgba(201, 149, 107, 0.45); }
+  0%, 100% { box-shadow: 0 0 20px rgba(45, 212, 191, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(45, 212, 191, 0.4); }
 }
 
 @keyframes glow-speak {
-  0%, 100% { box-shadow: 0 0 25px rgba(201, 149, 107, 0.4); }
-  50% { box-shadow: 0 0 50px rgba(201, 149, 107, 0.7); }
+  0%, 100% { box-shadow: 0 0 25px rgba(45, 212, 191, 0.35); }
+  50% { box-shadow: 0 0 50px rgba(45, 212, 191, 0.65); }
 }
 
 .avatar-idle {
-  box-shadow: 0 0 20px rgba(201, 149, 107, 0.15);
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.1);
 }
 
 .avatar-listening {
@@ -56,7 +56,7 @@ body {
 }
 .future-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(201, 149, 107, 0.12);
+  box-shadow: 0 8px 30px rgba(45, 212, 191, 0.1);
 }
 
 /* Progress bar shimmer */
@@ -94,7 +94,7 @@ body {
 /* Thin scrollbar for card backstory */
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgba(122, 114, 105, 0.3) transparent;
+  scrollbar-color: rgba(106, 106, 117, 0.3) transparent;
 }
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
@@ -103,6 +103,6 @@ body {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(122, 114, 105, 0.3);
+  background: rgba(106, 106, 117, 0.3);
   border-radius: 2px;
 }

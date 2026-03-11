@@ -23,6 +23,12 @@ export default function LandingPage() {
         <div className="flex items-center gap-3">
           {!loading && user ? (
             <>
+              <button
+                onClick={() => router.push("/futures")}
+                className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
+              >
+                My Futures
+              </button>
               {user.user_metadata?.avatar_url && (
                 <img
                   src={user.user_metadata.avatar_url}
@@ -31,12 +37,9 @@ export default function LandingPage() {
                   referrerPolicy="no-referrer"
                 />
               )}
-              <span className="text-sm text-mirror-200 hidden sm:inline">
-                {user.user_metadata?.full_name || user.email}
-              </span>
               <button
                 onClick={signOut}
-                className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
+                className="px-4 py-2 rounded-full text-mirror-400 hover:text-mirror-200 transition text-sm"
               >
                 Sign Out
               </button>

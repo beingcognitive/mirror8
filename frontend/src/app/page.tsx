@@ -72,8 +72,8 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="flex-1 flex flex-col items-center justify-center px-6 text-center max-w-3xl mx-auto">
-        <div className="mb-6 w-20 h-20 rounded-2xl overflow-hidden">
-          <img src="/hero.jpg" alt="Mirror8" className="w-full h-full object-cover" />
+        <div className="mb-6 rounded-2xl overflow-hidden">
+          <img src="/hero.jpg" alt="Mirror8" className="w-20 h-auto" />
         </div>
         <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
           Meet Your{" "}

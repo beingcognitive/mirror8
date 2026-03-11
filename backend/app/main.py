@@ -519,17 +519,22 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                             await websocket.send_bytes(part.inline_data.data)
 
                 # Output transcription (what future self said)
-                # Accumulate only — send to frontend at turn boundaries
+                # The API sends incremental chunks (finished=False) then a
+                # final complete transcription (finished=True). Use the final
+                # when available; keep partials only as fallback.
                 if hasattr(event, "output_transcription") and event.output_transcription:
                     text = event.output_transcription.text
                     if text and text.strip():
+                        if event.output_transcription.finished:
+                            pending_agent_text.clear()
                         pending_agent_text.append(text.strip())
 
                 # Input transcription (what user said)
-                # Accumulate only — send to frontend at turn boundaries
                 if hasattr(event, "input_transcription") and event.input_transcription:
                     text = event.input_transcription.text
                     if text and text.strip():
+                        if event.input_transcription.finished:
+                            pending_user_text.clear()
                         pending_user_text.append(text.strip())
 
                 if event.interrupted:

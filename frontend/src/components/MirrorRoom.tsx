@@ -212,7 +212,7 @@ export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoo
           </div>
 
           {/* Name & title */}
-          <h2 className="text-2xl font-serif text-accent mb-1">{future.name}</h2>
+          <h2 className="text-2xl font-bold text-accent mb-1">{future.name}</h2>
           <p className="text-mirror-300 text-sm mb-6">{future.title}</p>
 
           {/* Full backstory (not truncated) */}

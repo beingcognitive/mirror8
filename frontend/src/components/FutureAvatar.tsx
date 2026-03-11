@@ -91,7 +91,7 @@ export default function FutureAvatar({
         )}
       </div>
       <div className="text-center">
-        <p className={`font-serif text-accent ${heroMode ? "text-xl" : ""}`}>
+        <p className={`font-semibold text-accent ${heroMode ? "text-xl" : ""}`}>
           {name}
         </p>
         {heroMode && title && (

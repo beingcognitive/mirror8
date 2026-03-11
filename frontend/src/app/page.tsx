@@ -19,7 +19,7 @@ export default function LandingPage() {
     <main className="min-h-screen flex flex-col">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4">
-        <div className="text-xl font-serif gradient-text">Mirror8</div>
+        <div className="text-xl font-bold gradient-text">Mirror8</div>
         <div className="flex items-center gap-3">
           {!loading && user ? (
             <>
@@ -55,7 +55,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="flex-1 flex flex-col items-center justify-center px-6 text-center max-w-3xl mx-auto">
         <div className="mb-6 text-6xl">🪞</div>
-        <h1 className="text-5xl md:text-6xl font-serif mb-6 leading-tight">
+        <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
           Meet Your{" "}
           <span className="gradient-text">Future Self</span>
         </h1>
@@ -81,7 +81,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-mirror-800/50 rounded-2xl p-6 border border-mirror-700">
             <div className="text-3xl mb-4">📸</div>
-            <h3 className="text-lg font-serif mb-2">1. Upload a Selfie</h3>
+            <h3 className="text-lg font-bold mb-2">1. Upload a Selfie</h3>
             <p className="text-mirror-300 text-sm">
               Take a photo or upload one. AI analyzes your features to create
               personalized future portraits.
@@ -89,7 +89,7 @@ export default function LandingPage() {
           </div>
           <div className="bg-mirror-800/50 rounded-2xl p-6 border border-mirror-700">
             <div className="text-3xl mb-4">✨</div>
-            <h3 className="text-lg font-serif mb-2">2. Choose a Future</h3>
+            <h3 className="text-lg font-bold mb-2">2. Choose a Future</h3>
             <p className="text-mirror-300 text-sm">
               8 possible futures — The Visionary, The Healer, The Artist, and
               more. Each with a unique portrait and story.
@@ -97,7 +97,7 @@ export default function LandingPage() {
           </div>
           <div className="bg-mirror-800/50 rounded-2xl p-6 border border-mirror-700">
             <div className="text-3xl mb-4">🗣️</div>
-            <h3 className="text-lg font-serif mb-2">3. Have a Conversation</h3>
+            <h3 className="text-lg font-bold mb-2">3. Have a Conversation</h3>
             <p className="text-mirror-300 text-sm">
               Talk in real-time. Your future self can see you, hear you, and
               speak back. Unscripted. Genuine.

@@ -86,7 +86,7 @@ export default function UploadPage() {
   return (
     <main className="min-h-screen flex flex-col">
       <nav className="flex items-center justify-between px-6 py-4">
-        <Link href="/" className="text-xl font-serif gradient-text">
+        <Link href="/" className="text-xl font-bold gradient-text">
           Mirror8
         </Link>
       </nav>
@@ -112,7 +112,7 @@ export default function UploadPage() {
             </div>
 
             <div className="text-center">
-              <h1 className="text-2xl md:text-3xl font-serif mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">
                 Before we imagine your futures...
               </h1>
               <p className="text-mirror-200 text-sm max-w-md">
@@ -167,7 +167,7 @@ export default function UploadPage() {
         ) : (
           /* ── Selfie Capture Step ── */
           <>
-            <h1 className="text-3xl md:text-4xl font-serif mb-2 text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-center">
               Upload Your Selfie
             </h1>
             <p className="text-mirror-300 mb-8 text-center max-w-md">

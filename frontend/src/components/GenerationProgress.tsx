@@ -61,7 +61,7 @@ export default function GenerationProgress({
         <div className="absolute inset-8 rounded-full bg-accent" />
       </div>
 
-      <h2 className="text-2xl font-serif text-accent">Creating Your Futures</h2>
+      <h2 className="text-2xl font-bold text-accent">Creating Your Futures</h2>
 
       <p className="text-mirror-200 text-lg">{message}</p>
 

@@ -37,7 +37,7 @@ export default function FuturesPage() {
   return (
     <main className="min-h-screen flex flex-col">
       <nav className="flex items-center justify-between px-6 py-4">
-        <Link href="/" className="text-xl font-serif gradient-text">
+        <Link href="/" className="text-xl font-bold gradient-text">
           Mirror8
         </Link>
         <Link
@@ -50,7 +50,7 @@ export default function FuturesPage() {
 
       <div className="flex-1 px-6 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-serif mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
             Your <span className="gradient-text">8 Futures</span>
           </h1>
           <p className="text-mirror-300 max-w-lg mx-auto">

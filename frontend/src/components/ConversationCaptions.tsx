@@ -36,7 +36,7 @@ export default function ConversationCaptions({
   return (
     <div
       ref={scrollRef}
-      className="w-full max-w-lg mx-auto space-y-2 px-4 max-h-40 overflow-y-auto scrollbar-thin"
+      className="w-full max-w-lg mx-auto space-y-2 px-4 max-h-40 overflow-y-auto scrollbar-hide"
     >
       {/* Past conversation entries (dimmed) */}
       {hasPast && !lastAgent && !lastUser && (

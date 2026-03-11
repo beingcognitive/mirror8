@@ -129,6 +129,14 @@ body {
   animation: date-fade 0.3s ease-out;
 }
 
+/* Hidden scrollbar — scrollable but no visible bar */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Thin scrollbar for card backstory */
 .scrollbar-thin {
   color-scheme: dark;

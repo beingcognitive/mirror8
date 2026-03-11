@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import MirrorRoom from "@/components/MirrorRoom";
 import { FuturePersona, GenerationResult } from "@/lib/types";
-import { getSession } from "@/lib/api";
+import { getSession, getConversationsForFuture, Conversation } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 
 export default function MirrorPageClient() {
@@ -19,6 +19,7 @@ export default function MirrorPageClient() {
   const [future, setFuture] = useState<FuturePersona | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [pastConversations, setPastConversations] = useState<Conversation[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -34,7 +35,15 @@ export default function MirrorPageClient() {
     }
 
     // Get access token for WebSocket
-    getAccessToken().then(setAccessToken);
+    getAccessToken().then((token) => {
+      if (!token) return;
+      setAccessToken(token);
+
+      // Fetch past conversations in parallel with session data
+      getConversationsForFuture(sessionId, futureId, token).then(
+        setPastConversations,
+      );
+    });
 
     // Try sessionStorage first
     const stored = sessionStorage.getItem("mirror8_session");
@@ -87,7 +96,12 @@ export default function MirrorPageClient() {
           <span>Back</span>
         </Link>
       </div>
-      <MirrorRoom sessionId={sessionId} future={future} accessToken={accessToken} />
+      <MirrorRoom
+        sessionId={sessionId}
+        future={future}
+        accessToken={accessToken}
+        pastConversations={pastConversations}
+      />
     </main>
   );
 }

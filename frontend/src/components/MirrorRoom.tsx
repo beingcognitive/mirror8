@@ -8,6 +8,7 @@ import {
   FuturePersona,
   WSServerMessage,
 } from "@/lib/types";
+import { Conversation } from "@/lib/api";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
@@ -21,13 +22,33 @@ interface MirrorRoomProps {
   sessionId: string;
   future: FuturePersona;
   accessToken: string;
+  pastConversations?: Conversation[];
 }
 
 let entryCounter = 0;
 
-export default function MirrorRoom({ sessionId, future, accessToken }: MirrorRoomProps) {
+function buildPastTranscripts(conversations: Conversation[]): TranscriptEntry[] {
+  if (!conversations.length) return [];
+
+  // Show the most recent past conversation
+  const latest = conversations[0];
+  if (!latest.transcript?.length) return [];
+
+  return latest.transcript.map((turn) => ({
+    id: `past-${++entryCounter}`,
+    role: turn.role === "agent" ? "agent" as const : "user" as const,
+    text: turn.text,
+    timestamp: turn.ts * 1000,
+    isPast: true,
+  }));
+}
+
+export default function MirrorRoom({ sessionId, future, accessToken, pastConversations }: MirrorRoomProps) {
   const [status, setStatus] = useState<ConnectionStatus>("idle");
-  const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
+
+  // Build initial transcripts from past conversation history
+  const pastEntries = pastConversations?.length ? buildPastTranscripts(pastConversations) : [];
+  const [transcripts, setTranscripts] = useState<TranscriptEntry[]>(pastEntries);
   const [micLevel, setMicLevel] = useState(0);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);

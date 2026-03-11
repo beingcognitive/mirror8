@@ -26,6 +26,7 @@ export interface TranscriptEntry {
   role: "user" | "agent";
   text: string;
   timestamp: number;
+  isPast?: boolean;
 }
 
 export type AvatarMood = "idle" | "listening" | "speaking";

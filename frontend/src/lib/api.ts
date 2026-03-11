@@ -111,6 +111,42 @@ export async function getSession(
   return response.json();
 }
 
+export interface ConversationTranscriptEntry {
+  role: "user" | "agent";
+  text: string;
+  ts: number;
+}
+
+export interface Conversation {
+  id: string;
+  future_id: string;
+  started_at: string;
+  ended_at: string;
+  duration_seconds: number;
+  transcript: ConversationTranscriptEntry[];
+  insights: unknown[];
+}
+
+export async function getConversationsForFuture(
+  sessionId: string,
+  futureId: string,
+  accessToken: string,
+): Promise<Conversation[]> {
+  const response = await fetch(
+    `${API_URL}/api/session/${sessionId}/conversations/${futureId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+  if (!response.ok) {
+    return [];
+  }
+  const data = await response.json();
+  return data.conversations;
+}
+
 export interface SessionSummary {
   id: string;
   created_at: string;

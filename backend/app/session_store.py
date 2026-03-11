@@ -157,6 +157,20 @@ def get_conversations(session_id: str) -> list[dict]:
     return result.data
 
 
+def get_conversations_for_future(session_id: str, future_id: str) -> list[dict]:
+    """Fetch conversations for a specific future within a session, most recent first."""
+    client = _get_client()
+    result = (
+        client.table("conversations")
+        .select("id, future_id, started_at, ended_at, duration_seconds, transcript, insights")
+        .eq("session_id", session_id)
+        .eq("future_id", future_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data
+
+
 def get_user_sessions(user_id: str) -> list[dict]:
     """List all sessions for a user (most recent first)."""
     client = _get_client()

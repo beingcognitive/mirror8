@@ -8,12 +8,58 @@ from app.tools.reflection import ask_reflection_question
 from app.tools.session_summary import save_conversation_insight
 
 
+def _format_conversation_history(past_conversations: list[dict]) -> str:
+    """Condense past conversations into a prompt-friendly summary."""
+    if not past_conversations:
+        return ""
+
+    sections = []
+    for i, conv in enumerate(reversed(past_conversations)):  # oldest first
+        transcript = conv.get("transcript", [])
+        if not transcript:
+            continue
+
+        # Take the key exchanges (first few + last few turns for context)
+        lines = []
+        for turn in transcript:
+            role = "You" if turn["role"] == "agent" else "Them"
+            text = turn["text"]
+            # Truncate long turns
+            if len(text) > 200:
+                text = text[:200] + "..."
+            lines.append(f"  {role}: {text}")
+
+        # Keep it concise — max ~15 turns per conversation
+        if len(lines) > 15:
+            lines = lines[:6] + ["  ..."] + lines[-6:]
+
+        started = conv.get("started_at", "")
+        date_str = started[:10] if started else f"conversation {i + 1}"
+        sections.append(f"[{date_str}]\n" + "\n".join(lines))
+
+    if not sections:
+        return ""
+
+    # Limit to last 3 conversations to keep prompt manageable
+    sections = sections[-3:]
+
+    return (
+        "\n\nWHAT YOU'VE DISCUSSED BEFORE:\n"
+        "You've spoken with your younger self before. Here's what you talked about — "
+        "reference these naturally, build on them, show you remember:\n\n"
+        + "\n\n".join(sections)
+        + "\n\nDon't repeat yourself. Build on what was shared. "
+        "Notice what's changed since last time."
+    )
+
+
 def create_mirror_agent(
     archetype: Archetype,
     persona_data: dict,
     analysis: dict,
     session_id: str,
     about_me: str = "",
+    past_conversations: list[dict] | None = None,
 ) -> Agent:
     """Create a per-session Agent with a persona-specific system prompt.
 
@@ -92,7 +138,7 @@ WHAT YOUR YOUNGER SELF SHARED:
 SESSION CONTEXT:
 - Session ID: {session_id}
 - Use save_conversation_insight to capture meaningful moments
-
+{_format_conversation_history(past_conversations or [])}
 Remember: This might be the most important conversation of their life. Be worthy of it."""
 
     return Agent(

@@ -26,6 +26,7 @@ from app.live_portrait import generate_live_portrait, should_update_portrait
 from app.session_store import (
     create_session,
     get_conversations,
+    get_conversations_for_future,
     get_selfie_bytes,
     get_session,
     get_user_sessions,
@@ -275,6 +276,23 @@ async def list_conversations(
     return JSONResponse({"conversations": conversations})
 
 
+@app.get("/api/session/{session_id}/conversations/{future_id}")
+async def list_future_conversations(
+    session_id: str,
+    future_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    """List past conversations for a specific future within a session."""
+    session = get_session(session_id)
+    if not session:
+        return JSONResponse(status_code=404, content={"error": "Session not found"})
+    if session["user_id"] != user_id:
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
+
+    conversations = get_conversations_for_future(session_id, future_id)
+    return JSONResponse({"conversations": conversations})
+
+
 # ──────────────────────────── WebSocket: Live Conversation ────────────────────────────
 
 
@@ -332,6 +350,9 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
     # Live portrait generation state
     portrait_gen_state = {"in_flight": False, "index": 0, "turn_count": 0}
 
+    # Fetch past conversations for this future (for memory continuity)
+    past_conversations = get_conversations_for_future(session_id, future_id)
+
     # Create per-session Agent
     agent = create_mirror_agent(
         archetype=archetype,
@@ -339,6 +360,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
         analysis=analysis,
         session_id=session_id,
         about_me=about_me,
+        past_conversations=past_conversations,
     )
 
     # Create per-session Runner
@@ -459,9 +481,17 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
         """Receive events from Gemini via ADK, forward to browser."""
         try:
             # Send initial greeting to trigger the future self's opening
-            greeting = types.Content(
-                role="user",
-                parts=[types.Part(text=(
+            if past_conversations:
+                greeting_text = (
+                    "[System: Your younger self is back — you've talked before. "
+                    "You can see them through the camera. "
+                    "Welcome them back warmly. Reference something specific "
+                    "from your previous conversation to show you remember. "
+                    "Then ask what's happened since you last spoke. "
+                    "Be genuine, be glad to see them again. Keep it brief — under 50 words.]"
+                )
+            else:
+                greeting_text = (
                     "[System: Your younger self just appeared in front of you. "
                     "You're seeing them for the first time. "
                     "You can see them through the camera. "
@@ -469,7 +499,10 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                     "Greet them warmly, then tell them one important thing "
                     "you wish you'd known at their age. "
                     "Be genuine, be moved. Keep it brief — under 50 words.]"
-                ))],
+                )
+            greeting = types.Content(
+                role="user",
+                parts=[types.Part(text=greeting_text)],
             )
             live_request_queue.send_content(greeting)
 

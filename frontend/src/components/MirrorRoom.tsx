@@ -46,9 +46,19 @@ function buildPastTranscripts(conversations: Conversation[]): TranscriptEntry[] 
 export default function MirrorRoom({ sessionId, future, accessToken, pastConversations }: MirrorRoomProps) {
   const [status, setStatus] = useState<ConnectionStatus>("idle");
 
-  // Build initial transcripts from past conversation history
-  const pastEntries = pastConversations?.length ? buildPastTranscripts(pastConversations) : [];
-  const [transcripts, setTranscripts] = useState<TranscriptEntry[]>(pastEntries);
+  const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
+  const pastLoaded = useRef(false);
+
+  // Populate past entries when pastConversations arrives (async)
+  useEffect(() => {
+    if (pastLoaded.current || !pastConversations?.length) return;
+    pastLoaded.current = true;
+    const pastEntries = buildPastTranscripts(pastConversations);
+    if (pastEntries.length) {
+      setTranscripts((prev) => [...pastEntries, ...prev]);
+    }
+  }, [pastConversations]);
+
   const [micLevel, setMicLevel] = useState(0);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);

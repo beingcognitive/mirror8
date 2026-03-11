@@ -39,31 +39,29 @@ export default function ConversationCaptions({
       className="w-full max-w-lg mx-auto space-y-2 px-4 max-h-40 overflow-y-auto scrollbar-hide"
     >
       {/* Past conversation entries (dimmed) */}
-      {hasPast && !lastAgent && !lastUser && (
-        <>
-          {visiblePast.map((entry) => (
-            <div
-              key={entry.id}
-              className={`${entry.role === "user" ? "flex justify-end" : ""}`}
-            >
-              {entry.role === "user" ? (
-                <div className="bg-mirror-700/40 rounded-2xl px-4 py-2 max-w-[80%] opacity-40">
-                  <p className="text-xs text-mirror-300">{entry.text}</p>
-                </div>
-              ) : (
-                <div className="bg-mirror-800/40 rounded-2xl px-4 py-2 border border-mirror-700/30 opacity-40">
-                  <p className="text-xs text-accent/60 mb-0.5 font-medium">{futureName}</p>
-                  <p className="text-xs text-mirror-300">{entry.text}</p>
-                </div>
-              )}
+      {hasPast && visiblePast.map((entry) => (
+        <div
+          key={entry.id}
+          className={`${entry.role === "user" ? "flex justify-end" : ""}`}
+        >
+          {entry.role === "user" ? (
+            <div className="bg-mirror-700/40 rounded-2xl px-4 py-2 max-w-[80%] opacity-40">
+              <p className="text-xs text-mirror-300">{entry.text}</p>
             </div>
-          ))}
-          <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 h-px bg-mirror-700/50" />
-            <span className="text-[10px] text-mirror-500 uppercase tracking-wider">now</span>
-            <div className="flex-1 h-px bg-mirror-700/50" />
-          </div>
-        </>
+          ) : (
+            <div className="bg-mirror-800/40 rounded-2xl px-4 py-2 border border-mirror-700/30 opacity-40">
+              <p className="text-xs text-accent/60 mb-0.5 font-medium">{futureName}</p>
+              <p className="text-xs text-mirror-300">{entry.text}</p>
+            </div>
+          )}
+        </div>
+      ))}
+      {hasPast && (
+        <div className="flex items-center gap-3 py-1">
+          <div className="flex-1 h-px bg-mirror-700/50" />
+          <span className="text-[10px] text-mirror-500 uppercase tracking-wider">now</span>
+          <div className="flex-1 h-px bg-mirror-700/50" />
+        </div>
       )}
 
       {/* Live conversation entries */}

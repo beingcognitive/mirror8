@@ -94,7 +94,7 @@ body {
 /* Thin scrollbar for card backstory */
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgba(122, 114, 105, 0.15) transparent;
+  scrollbar-color: rgba(61, 56, 51, 0.5) transparent;
 }
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
@@ -103,6 +103,6 @@ body {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(122, 114, 105, 0.15);
+  background: rgba(61, 56, 51, 0.5);
   border-radius: 2px;
 }

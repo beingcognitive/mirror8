@@ -1,11 +1,24 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { getMySessions } from "@/lib/api";
 
 export default function LandingPage() {
-  const { user, loading, signIn, signOut } = useAuth();
+  const { user, loading, signIn, signOut, getAccessToken } = useAuth();
   const router = useRouter();
+  const [hasSessions, setHasSessions] = useState(false);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    (async () => {
+      const token = await getAccessToken();
+      if (!token) return;
+      const sessions = await getMySessions(token);
+      setHasSessions(sessions.length > 0);
+    })();
+  }, [loading, user, getAccessToken]);
 
   const handleCTA = () => {
     if (user) {
@@ -23,12 +36,14 @@ export default function LandingPage() {
         <div className="flex items-center gap-3">
           {!loading && user ? (
             <>
-              <button
-                onClick={() => router.push("/futures")}
-                className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
-              >
-                My Futures
-              </button>
+              {hasSessions && (
+                <button
+                  onClick={() => router.push("/futures")}
+                  className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
+                >
+                  My Futures
+                </button>
+              )}
               {user.user_metadata?.avatar_url && (
                 <img
                   src={user.user_metadata.avatar_url}

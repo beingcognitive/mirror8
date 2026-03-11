@@ -519,36 +519,46 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                             await websocket.send_bytes(part.inline_data.data)
 
                 # Output transcription (what future self said)
+                # Accumulate only — send to frontend at turn boundaries
                 if hasattr(event, "output_transcription") and event.output_transcription:
                     text = event.output_transcription.text
                     if text and text.strip():
                         pending_agent_text.append(text.strip())
-                        await websocket.send_text(
-                            json.dumps({
-                                "type": "transcript",
-                                "role": "agent",
-                                "text": text.strip(),
-                            })
-                        )
 
                 # Input transcription (what user said)
+                # Accumulate only — send to frontend at turn boundaries
                 if hasattr(event, "input_transcription") and event.input_transcription:
                     text = event.input_transcription.text
                     if text and text.strip():
                         pending_user_text.append(text.strip())
-                        await websocket.send_text(
-                            json.dumps({
-                                "type": "transcript",
-                                "role": "user",
-                                "text": text.strip(),
-                            })
-                        )
 
                 if event.interrupted:
+                    # Send accumulated transcripts before signal
+                    if pending_user_text:
+                        await websocket.send_text(json.dumps({
+                            "type": "transcript", "role": "user",
+                            "text": " ".join(pending_user_text),
+                        }))
+                    if pending_agent_text:
+                        await websocket.send_text(json.dumps({
+                            "type": "transcript", "role": "agent",
+                            "text": " ".join(pending_agent_text),
+                        }))
                     flush_pending()
                     await websocket.send_text(json.dumps({"type": "interrupted"}))
 
                 if event.turn_complete:
+                    # Send accumulated transcripts before signal
+                    if pending_user_text:
+                        await websocket.send_text(json.dumps({
+                            "type": "transcript", "role": "user",
+                            "text": " ".join(pending_user_text),
+                        }))
+                    if pending_agent_text:
+                        await websocket.send_text(json.dumps({
+                            "type": "transcript", "role": "agent",
+                            "text": " ".join(pending_agent_text),
+                        }))
                     flush_pending()
                     await websocket.send_text(json.dumps({"type": "turn_complete"}))
 

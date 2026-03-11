@@ -188,7 +188,7 @@ export default function FuturesPage() {
                 className={`p-2 rounded-full transition-all duration-200 ${
                   isOldest || loadingSession
                     ? "text-mirror-700 cursor-default"
-                    : "text-mirror-300 hover:text-accent hover:bg-mirror-800/60"
+                    : "text-mirror-400 hover:text-accent hover:bg-mirror-800/60"
                 }`}
                 aria-label="Older session"
               >
@@ -215,7 +215,7 @@ export default function FuturesPage() {
                 className={`p-2 rounded-full transition-all duration-200 ${
                   isLatest || loadingSession
                     ? "text-mirror-700 cursor-default"
-                    : "text-mirror-300 hover:text-accent hover:bg-mirror-800/60"
+                    : "text-mirror-400 hover:text-accent hover:bg-mirror-800/60"
                 }`}
                 aria-label="Newer session"
               >

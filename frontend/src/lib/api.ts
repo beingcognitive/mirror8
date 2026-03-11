@@ -110,3 +110,23 @@ export async function getSession(
   }
   return response.json();
 }
+
+export interface SessionSummary {
+  id: string;
+  created_at: string;
+}
+
+export async function getMySessions(
+  accessToken: string,
+): Promise<SessionSummary[]> {
+  const response = await fetch(`${API_URL}/api/my-sessions`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch sessions");
+  }
+  const data = await response.json();
+  return data.sessions;
+}

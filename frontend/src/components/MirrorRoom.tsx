@@ -23,6 +23,7 @@ interface MirrorRoomProps {
   future: FuturePersona;
   accessToken: string;
   pastConversations?: Conversation[];
+  onSessionEnd?: () => void;
 }
 
 let entryCounter = 0;
@@ -43,7 +44,7 @@ function buildPastTranscripts(conversations: Conversation[]): TranscriptEntry[] 
   }));
 }
 
-export default function MirrorRoom({ sessionId, future, accessToken, pastConversations }: MirrorRoomProps) {
+export default function MirrorRoom({ sessionId, future, accessToken, pastConversations, onSessionEnd }: MirrorRoomProps) {
   const [status, setStatus] = useState<ConnectionStatus>("idle");
 
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
@@ -190,7 +191,8 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
     ws.disconnect();
     playback.close();
     setMood("idle");
-  }, [audioCapture, cameraCapture, ws, playback]);
+    onSessionEnd?.();
+  }, [audioCapture, cameraCapture, ws, playback, onSessionEnd]);
 
   const handleToggleMic = useCallback(() => {
     setIsMicOn((prev) => !prev);

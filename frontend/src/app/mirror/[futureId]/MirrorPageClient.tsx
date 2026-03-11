@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import MirrorRoom from "@/components/MirrorRoom";
 import { FuturePersona, GenerationResult } from "@/lib/types";
@@ -19,6 +19,10 @@ export default function MirrorPageClient() {
   const [loading, setLoading] = useState(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [pastConversations, setPastConversations] = useState<Conversation[]>([]);
+
+  const goBack = useCallback(() => {
+    router.push(`/futures${sessionId ? `?session=${sessionId}` : ""}`);
+  }, [router, sessionId]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -88,7 +92,7 @@ export default function MirrorPageClient() {
       {/* Minimal overlay header — just a back arrow */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4">
         <button
-          onClick={() => router.back()}
+          onClick={goBack}
           className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-mirror-800/60 backdrop-blur-sm text-mirror-300 hover:text-mirror-100 hover:bg-mirror-800/80 transition text-sm"
         >
           <span>&#8592;</span>
@@ -100,6 +104,7 @@ export default function MirrorPageClient() {
         future={future}
         accessToken={accessToken}
         pastConversations={pastConversations}
+        onSessionEnd={goBack}
       />
     </main>
   );

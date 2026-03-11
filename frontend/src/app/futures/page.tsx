@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import FuturesGrid from "@/components/FuturesGrid";
 import { GenerationResult } from "@/lib/types";
@@ -54,7 +54,17 @@ function ChevronRight({ className }: { className?: string }) {
 }
 
 export default function FuturesPage() {
+  return (
+    <Suspense>
+      <FuturesPageContent />
+    </Suspense>
+  );
+}
+
+function FuturesPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedSessionId = searchParams.get("session");
   const { user, loading, getAccessToken } = useAuth();
 
   // All sessions for this user (most recent first)
@@ -94,6 +104,21 @@ export default function FuturesPage() {
         const allSessions = await getMySessions(token);
         setSessions(allSessions);
 
+        // If a specific session was requested via URL param, navigate to it
+        if (requestedSessionId && allSessions.length > 0) {
+          const targetIndex = allSessions.findIndex((s) => s.id === requestedSessionId);
+          if (targetIndex >= 0) {
+            setCurrentIndex(targetIndex);
+            // Load it if not already the displayed session
+            if (!data || data.sessionId !== requestedSessionId) {
+              const sessionData = await getSession(requestedSessionId, token);
+              setData(sessionData);
+              setCache((prev) => ({ ...prev, [sessionData.sessionId]: sessionData }));
+            }
+            return;
+          }
+        }
+
         // If no stored session but we have history, load the most recent
         if (!stored && allSessions.length > 0) {
           const latest = allSessions[0];
@@ -109,7 +134,7 @@ export default function FuturesPage() {
         if (!stored) router.push("/upload");
       }
     })();
-  }, [router, loading, user, getAccessToken]);
+  }, [router, loading, user, getAccessToken, requestedSessionId]);
 
   const navigateTo = useCallback(
     async (index: number, direction: "left" | "right") => {

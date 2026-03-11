@@ -50,9 +50,12 @@ Landing → Sign in with Google → Upload Selfie → AI generates 8 futures →
 │          ┌───────────────────────────────────────────────────┐  │
 │          │              Supabase (via service key)            │  │
 │          │  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │  │
-│          │  │ sessions │  │ futures  │  │ portraits      │  │  │
-│          │  │ (DB)     │  │ (DB)     │  │ (Storage)      │  │  │
+│          │  │ sessions │  │ futures  │  │ conversations  │  │  │
+│          │  │ (DB)     │  │ (DB)     │  │ (DB)           │  │  │
 │          │  └──────────┘  └──────────┘  └────────────────┘  │  │
+│          │  ┌────────────────────────────────────────────┐   │  │
+│          │  │ portraits (Storage)                         │   │  │
+│          │  └────────────────────────────────────────────┘   │  │
 │          └───────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -80,6 +83,10 @@ Transcriptions          ←── WebSocket ←── FastAPI ←── Gemini L
 ```
 
 Each conversation gets a unique ADK Agent with a persona-specific system prompt built from the archetype + Phase A analysis. The future self can see the user through the camera and respond in character.
+
+### Session History
+
+Users can browse past sessions with page-flip navigation arrows on the futures grid. The most recent session shows no date label; older sessions display their creation date. Sessions are cached client-side after first load for instant navigation.
 
 ## Tech Stack
 

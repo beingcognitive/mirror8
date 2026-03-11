@@ -4,6 +4,7 @@ import asyncio
 import base64
 import json
 import logging
+import re
 import time
 import uuid
 from datetime import datetime, timezone
@@ -377,6 +378,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
     transcript_log: list[dict] = []
     pending_agent_text = []
     pending_user_text = []
+    audio_suppressed = False  # Discard stale audio after interruption
     started_at = datetime.now(timezone.utc)
 
     def flush_pending():
@@ -424,6 +426,13 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                     voice_name=voice_name,
                 )
             )
+        ),
+        realtime_input_config=types.RealtimeInputConfig(
+            automatic_activity_detection=types.AutomaticActivityDetection(
+                start_of_speech_sensitivity="START_SENSITIVITY_LOW",
+                end_of_speech_sensitivity="END_SENSITIVITY_LOW",
+                silence_duration_ms=500,
+            ),
         ),
         input_audio_transcription=types.AudioTranscriptionConfig(),
         output_audio_transcription=types.AudioTranscriptionConfig(),
@@ -513,31 +522,40 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 run_config=run_config,
             ):
                 # Audio from model (future self's voice)
+                # After interruption, discard stale audio until new response
                 if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if part.inline_data and part.inline_data.data:
-                            await websocket.send_bytes(part.inline_data.data)
+                    if not audio_suppressed:
+                        for part in event.content.parts:
+                            if part.inline_data and part.inline_data.data:
+                                await websocket.send_bytes(part.inline_data.data)
 
                 # Output transcription (what future self said)
                 # The API sends incremental chunks (finished=False) then a
                 # final complete transcription (finished=True). Use the final
                 # when available; keep partials only as fallback.
+                # Also filter leaked <ctrl##> tokens from Gemini's audio pipeline.
                 if hasattr(event, "output_transcription") and event.output_transcription:
+                    audio_suppressed = False  # New response started
                     text = event.output_transcription.text
-                    if text and text.strip():
+                    if text:
+                        text = re.sub(r"<ctrl\d+>", "", text).strip()
+                    if text:
                         if event.output_transcription.finished:
                             pending_agent_text.clear()
-                        pending_agent_text.append(text.strip())
+                        pending_agent_text.append(text)
 
                 # Input transcription (what user said)
                 if hasattr(event, "input_transcription") and event.input_transcription:
                     text = event.input_transcription.text
-                    if text and text.strip():
+                    if text:
+                        text = re.sub(r"<ctrl\d+>", "", text).strip()
+                    if text:
                         if event.input_transcription.finished:
                             pending_user_text.clear()
-                        pending_user_text.append(text.strip())
+                        pending_user_text.append(text)
 
                 if event.interrupted:
+                    audio_suppressed = True  # Suppress stale audio
                     # Send accumulated transcripts before signal
                     if pending_user_text:
                         await websocket.send_text(json.dumps({

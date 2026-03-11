@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, DM_Serif_Display } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const dmSerif = DM_Serif_Display({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-serif",
-});
 
 export const metadata: Metadata = {
   title: "Mirror8 — Meet Your Future Self",
@@ -25,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${dmSerif.variable} min-h-screen bg-mirror-900 text-mirror-100 antialiased font-sans`}
+        className={`${inter.variable} min-h-screen bg-mirror-900 text-mirror-100 antialiased font-sans`}
       >
         <AuthProvider>{children}</AuthProvider>
       </body>

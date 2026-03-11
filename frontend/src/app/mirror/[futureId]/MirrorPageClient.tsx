@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import MirrorRoom from "@/components/MirrorRoom";
 import { FuturePersona, GenerationResult } from "@/lib/types";
 import { getSession, getConversationsForFuture, Conversation } from "@/lib/api";
@@ -88,13 +87,13 @@ export default function MirrorPageClient() {
     <main className="relative min-h-screen">
       {/* Minimal overlay header — just a back arrow */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4">
-        <Link
-          href="/futures"
+        <button
+          onClick={() => router.back()}
           className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-mirror-800/60 backdrop-blur-sm text-mirror-300 hover:text-mirror-100 hover:bg-mirror-800/80 transition text-sm"
         >
           <span>&#8592;</span>
           <span>Back</span>
-        </Link>
+        </button>
       </div>
       <MirrorRoom
         sessionId={sessionId}

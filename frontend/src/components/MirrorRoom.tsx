@@ -169,6 +169,11 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
   const handleStart = useCallback(async () => {
     setStatus("permissions");
 
+    // Clear stale state from any previous session
+    pendingAgentText.current = "";
+    pendingUserText.current = "";
+    playback.clearBuffer();
+
     // Initialize playback context (needs user gesture)
     playback.init();
 

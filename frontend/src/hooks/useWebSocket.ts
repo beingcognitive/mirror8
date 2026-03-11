@@ -38,6 +38,19 @@ export function useWebSocket({
 
   const connect = useCallback(
     (sessionId: string, futureId: string, accessToken: string) => {
+      // Close any existing connection to prevent duplicate streams
+      if (pingRef.current) {
+        clearInterval(pingRef.current);
+        pingRef.current = null;
+      }
+      if (wsRef.current) {
+        wsRef.current.onclose = null; // Suppress "ended" status from stale close
+        wsRef.current.onerror = null;
+        wsRef.current.onmessage = null;
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+
       updateStatus("connecting");
       const url = `${WS_URL}/ws/mirror/${sessionId}/${futureId}?token=${encodeURIComponent(accessToken)}`;
       const ws = new WebSocket(url);

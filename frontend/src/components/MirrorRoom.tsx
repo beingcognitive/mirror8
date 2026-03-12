@@ -24,6 +24,7 @@ interface MirrorRoomProps {
   accessToken: string;
   pastConversations?: Conversation[];
   onSessionEnd?: () => void;
+  stopRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 let entryCounter = 0;
@@ -44,7 +45,7 @@ function buildPastTranscripts(conversations: Conversation[]): TranscriptEntry[] 
   }));
 }
 
-export default function MirrorRoom({ sessionId, future, accessToken, pastConversations, onSessionEnd }: MirrorRoomProps) {
+export default function MirrorRoom({ sessionId, future, accessToken, pastConversations, onSessionEnd, stopRef }: MirrorRoomProps) {
   const [status, setStatus] = useState<ConnectionStatus>("idle");
 
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
@@ -204,6 +205,12 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
     setWaitingForFirstResponse(false);
     onSessionEnd?.();
   }, [audioCapture, cameraCapture, ws, playback, onSessionEnd]);
+
+  // Expose stop function to parent (e.g. for Back button)
+  useEffect(() => {
+    if (stopRef) stopRef.current = handleEnd;
+    return () => { if (stopRef) stopRef.current = null; };
+  }, [stopRef, handleEnd]);
 
   const handleToggleMic = useCallback(() => {
     setIsMicOn((prev) => !prev);

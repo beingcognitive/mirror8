@@ -9,6 +9,7 @@ interface FutureAvatarProps {
   mood: AvatarMood;
   heroMode?: boolean;
   title?: string;
+  waiting?: boolean;
 }
 
 export default function FutureAvatar({
@@ -17,6 +18,7 @@ export default function FutureAvatar({
   mood,
   heroMode,
   title,
+  waiting,
 }: FutureAvatarProps) {
   const moodClass =
     mood === "speaking"
@@ -96,6 +98,13 @@ export default function FutureAvatar({
         </p>
         {heroMode && title && (
           <p className="text-sm text-mirror-300 mt-0.5">{title}</p>
+        )}
+        {heroMode && waiting && (
+          <div className="flex items-center gap-1 mt-2">
+            <span className="thinking-dot" style={{ animationDelay: "0s" }} />
+            <span className="thinking-dot" style={{ animationDelay: "0.2s" }} />
+            <span className="thinking-dot" style={{ animationDelay: "0.4s" }} />
+          </div>
         )}
         {!heroMode && (
           <p className="text-xs text-mirror-400">

@@ -66,6 +66,7 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
   const [mood, setMood] = useState<AvatarMood>("idle");
   const [autoStartFailed, setAutoStartFailed] = useState(false);
   const [currentPortraitUrl, setCurrentPortraitUrl] = useState(future.portraitUrl || null);
+  const [waitingForFirstResponse, setWaitingForFirstResponse] = useState(false);
   const cameraVideoRef = useRef<HTMLVideoElement>(null);
   const hasAttemptedAutoStart = useRef(false);
 
@@ -107,6 +108,7 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
     onAudioData: (pcmData) => {
       playback.playChunk(pcmData);
       setMood("speaking");
+      setWaitingForFirstResponse(false);
     },
     onMessage: (msg: WSServerMessage) => {
       switch (msg.type) {
@@ -147,7 +149,10 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
           break;
       }
     },
-    onStatusChange: setStatus,
+    onStatusChange: (s) => {
+      setStatus(s);
+      if (s === "active") setWaitingForFirstResponse(true);
+    },
   });
 
   // Audio capture
@@ -196,6 +201,7 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
     ws.disconnect();
     playback.close();
     setMood("idle");
+    setWaitingForFirstResponse(false);
     onSessionEnd?.();
   }, [audioCapture, cameraCapture, ws, playback, onSessionEnd]);
 
@@ -278,6 +284,7 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
           mood={mood}
           heroMode
           title={future.title}
+          waiting={waitingForFirstResponse}
         />
         {/* PiP webcam — positioned near the portrait */}
         <div className="absolute bottom-4 right-[calc(50%-12rem)] md:right-[calc(50%-14rem)] z-10">

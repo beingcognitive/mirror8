@@ -133,45 +133,37 @@ export default function UploadPage() {
             <SelfieCapture onCapture={handleCapture} />
           )}
 
-          {/* About me — always visible */}
-          <div className="w-full">
-            <textarea
-              value={aboutMe}
-              onChange={(e) => setAboutMe(e.target.value)}
-              placeholder={"e.g. I'm a 28-year-old software engineer in Seoul.\nMy goal for this year is to launch my own AI startup.\nI love building things but I'm scared of leaving my stable job."}
-              className="w-full h-32 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-mirror-100 placeholder:text-mirror-500 text-sm leading-relaxed resize-none focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition"
-            />
-            <p className="text-mirror-400 text-xs mt-1.5 text-center">
-              Optional — age, goals, dreams, fears.
-            </p>
-          </div>
+          {/* About me + actions — only after photo captured */}
+          {capturedFile && (
+            <>
+              <div className="w-full">
+                <textarea
+                  value={aboutMe}
+                  onChange={(e) => setAboutMe(e.target.value)}
+                  placeholder={"e.g. I'm a 28-year-old software engineer in Seoul.\nMy goal for this year is to launch my own AI startup.\nI love building things but I'm scared of leaving my stable job."}
+                  className="w-full h-32 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-mirror-100 placeholder:text-mirror-500 text-sm leading-relaxed resize-none focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition"
+                />
+                <p className="text-mirror-400 text-xs mt-1.5 text-center">
+                  Optional — age, goals, dreams, fears.
+                </p>
+              </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 w-full">
-            {capturedFile && (
-              <button
-                onClick={handleRetake}
-                className="px-5 py-3 rounded-full border border-mirror-600 text-mirror-300 hover:bg-mirror-800 transition text-sm"
-              >
-                Retake
-              </button>
-            )}
-            <button
-              onClick={handleGenerate}
-              disabled={!capturedFile}
-              className={`flex-1 py-3.5 rounded-full font-semibold transition text-sm ${
-                capturedFile
-                  ? "bg-accent text-mirror-900 hover:bg-accent-dim"
-                  : "bg-mirror-700 text-mirror-500 cursor-not-allowed"
-              }`}
-            >
-              {capturedFile
-                ? aboutMe.trim()
-                  ? "Meet My Future Selves"
-                  : "Skip & Generate"
-                : "Take a selfie to begin"}
-            </button>
-          </div>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={handleRetake}
+                  className="px-5 py-3 rounded-full border border-mirror-600 text-mirror-300 hover:bg-mirror-800 transition text-sm"
+                >
+                  Retake
+                </button>
+                <button
+                  onClick={handleGenerate}
+                  className="flex-1 py-3.5 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition text-sm"
+                >
+                  {aboutMe.trim() ? "Meet My Future Selves" : "Skip & Generate"}
+                </button>
+              </div>
+            </>
+          )}
 
           {error && (
             <div className="w-full px-4 py-4 bg-red-900/30 border border-red-800 rounded-xl text-center">

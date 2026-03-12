@@ -144,7 +144,7 @@ export default function UploadPage() {
                   className="w-full h-36 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-mirror-100 placeholder:text-mirror-500 text-sm leading-relaxed resize-none focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition"
                 />
                 <p className="text-mirror-300 text-xs mt-2 text-center">
-                  Optional — age, goals, dreams, fears — anything you want your future self to know.
+                  Optional: age, goals, dreams, fears — anything you want your future self to know.
                 </p>
               </div>
 

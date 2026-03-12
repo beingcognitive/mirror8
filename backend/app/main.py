@@ -488,6 +488,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
 
     async def downstream_task():
         """Receive events from Gemini via ADK, forward to browser."""
+        nonlocal audio_suppressed
         try:
             # Send initial greeting to trigger the future self's opening
             if past_conversations:

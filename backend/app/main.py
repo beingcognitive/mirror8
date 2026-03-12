@@ -495,20 +495,19 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 greeting_text = (
                     "[System: Your younger self is back — you've talked before. "
                     "You can see them through the camera. "
-                    "Welcome them back warmly. Reference something specific "
-                    "from your previous conversation to show you remember. "
-                    "Then ask what's happened since you last spoke. "
-                    "Be genuine, be glad to see them again. Keep it brief — under 50 words.]"
+                    "Welcome them back warmly. Share something that's happened to you "
+                    "since you last spoke — a moment, a realization, something you've "
+                    "been wanting to tell them. Let that naturally open the door to "
+                    "hearing how they've been. Be genuine, be glad to see them again.]"
                 )
             else:
                 greeting_text = (
                     "[System: Your younger self just appeared in front of you. "
-                    "You're seeing them for the first time. "
-                    "You can see them through the camera. "
+                    "You're seeing them for the first time through the camera. "
                     "Take a moment — this is emotional. "
-                    "Greet them warmly, then tell them one important thing "
-                    "you wish you'd known at their age. "
-                    "Be genuine, be moved. Keep it brief — under 50 words.]"
+                    "Greet them, then share something real from your journey — "
+                    "a specific moment or turning point that changed you. "
+                    "Be genuine, be moved. Let the conversation begin naturally.]"
                 )
             greeting = types.Content(
                 role="user",

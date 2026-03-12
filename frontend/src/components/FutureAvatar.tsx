@@ -100,7 +100,7 @@ export default function FutureAvatar({
           <p className="text-sm text-mirror-300 mt-0.5">{title}</p>
         )}
         {heroMode && waiting && (
-          <div className="flex items-center gap-1 mt-2">
+          <div className="flex items-center justify-center gap-1 mt-2">
             <span className="thinking-dot" style={{ animationDelay: "0s" }} />
             <span className="thinking-dot" style={{ animationDelay: "0.2s" }} />
             <span className="thinking-dot" style={{ animationDelay: "0.4s" }} />

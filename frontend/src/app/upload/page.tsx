@@ -16,7 +16,6 @@ export default function UploadPage() {
   const [errorRetryable, setErrorRetryable] = useState(false);
   const [progressEvent, setProgressEvent] = useState<ProgressEvent | null>(null);
 
-  // Profile step state
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [aboutMe, setAboutMe] = useState("");
@@ -27,7 +26,6 @@ export default function UploadPage() {
     }
   }, [loading, user, router]);
 
-  // Clean up preview URL on unmount
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -40,11 +38,10 @@ export default function UploadPage() {
     setError(null);
   };
 
-  const handleBack = () => {
+  const handleRetake = () => {
     setCapturedFile(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
-    setAboutMe("");
     setError(null);
   };
 
@@ -74,7 +71,6 @@ export default function UploadPage() {
       const retryable = (err as any)?.retryable === true;
       setError(message);
       setErrorRetryable(retryable);
-      // If retryable, keep showing progress screen with error overlay
       if (!retryable) {
         setGenerating(false);
       }
@@ -82,6 +78,26 @@ export default function UploadPage() {
   };
 
   if (loading || !user) return null;
+
+  if (generating) {
+    return (
+      <main className="min-h-screen flex flex-col">
+        <nav className="flex items-center justify-between px-6 py-4">
+          <Link href="/" className="text-xl font-bold gradient-text">
+            Mirror8
+          </Link>
+        </nav>
+        <div className="flex-1 flex flex-col items-center justify-start pt-6 md:justify-center px-6 md:py-12">
+          <GenerationProgress
+            event={progressEvent}
+            error={error}
+            retryable={errorRetryable}
+            onRetry={handleGenerate}
+          />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen flex flex-col">
@@ -92,96 +108,83 @@ export default function UploadPage() {
       </nav>
 
       <div className="flex-1 flex flex-col items-center justify-start pt-6 md:justify-center px-6 md:py-12">
-        {generating ? (
-          <GenerationProgress
-            event={progressEvent}
-            error={error}
-            retryable={errorRetryable}
-            onRetry={handleGenerate}
-          />
-        ) : capturedFile && previewUrl ? (
-          /* ── Profile Step ── */
-          <div className="w-full max-w-lg flex flex-col items-center gap-6">
-            {/* Selfie thumbnail */}
-            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-mirror-600 shadow-lg shadow-mirror-900/40">
-              <img
-                src={previewUrl}
-                alt="Your selfie"
-                className="w-full h-full object-cover"
-              />
-            </div>
+        <div className="w-full max-w-lg flex flex-col items-center gap-6">
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              {capturedFile ? "Almost there..." : "Upload Your Selfie"}
+            </h1>
+            <p className="text-mirror-300 max-w-md">
+              {capturedFile
+                ? "Tell us about yourself so your future selves actually know you."
+                : "Take a clear, well-lit selfie. AI will use your features to create 8 personalized future-self portraits."}
+            </p>
+          </div>
 
-            <div className="text-center">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                Before we imagine your futures...
-              </h1>
-              <p className="text-mirror-200 text-sm max-w-md">
-                Tell us a bit about yourself so your future selves actually know you.
-                The more you share, the more personal they become.
-              </p>
-            </div>
-
-            {/* Free-form textarea */}
-            <div className="w-full">
-              <textarea
-                value={aboutMe}
-                onChange={(e) => setAboutMe(e.target.value)}
-                placeholder={"e.g. I'm a 28-year-old software engineer in Seoul.\nMy goal for this year is to launch my own AI startup.\nI love building things but I'm scared of leaving my stable job."}
-                className="w-full h-36 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-mirror-100 placeholder:text-mirror-500 text-sm leading-relaxed resize-none focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition"
-              />
-              <p className="text-mirror-300 text-xs mt-2 text-center">
-                Age, goals, dreams, fears — anything you want your future self to know.
-              </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 w-full">
+          {/* Selfie: capture or preview */}
+          {capturedFile && previewUrl ? (
+            <div className="flex items-center gap-3">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-mirror-600 shadow-lg shadow-mirror-900/40 shrink-0">
+                <img
+                  src={previewUrl}
+                  alt="Your selfie"
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <button
-                onClick={handleBack}
-                className="px-5 py-3 rounded-full border border-mirror-600 text-mirror-300 hover:bg-mirror-800 transition text-sm"
+                onClick={handleRetake}
+                className="text-sm text-mirror-400 hover:text-mirror-200 transition"
               >
                 Retake
               </button>
-              <button
-                onClick={handleGenerate}
-                className="flex-1 py-3 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition text-sm"
-              >
-                {aboutMe.trim() ? "Meet My Future Selves" : "Skip & Generate"}
-              </button>
             </div>
-
-            {error && (
-              <div className="w-full px-4 py-4 bg-red-900/30 border border-red-800 rounded-xl text-center">
-                <p className="text-red-300 text-sm">{error}</p>
-                {errorRetryable && (
-                  <button
-                    onClick={handleGenerate}
-                    className="mt-3 px-6 py-2 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition text-sm"
-                  >
-                    Try Again
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          /* ── Selfie Capture Step ── */
-          <>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-center">
-              Upload Your Selfie
-            </h1>
-            <p className="text-mirror-300 mb-8 text-center max-w-md">
-              Take a clear, well-lit selfie. AI will use your features to create
-              8 personalized future-self portraits.
-            </p>
+          ) : (
             <SelfieCapture onCapture={handleCapture} />
-            {error && (
-              <div className="mt-6 px-4 py-4 bg-red-900/30 border border-red-800 rounded-xl max-w-md text-center">
-                <p className="text-red-300 text-sm">{error}</p>
-              </div>
-            )}
-          </>
-        )}
+          )}
+
+          {/* About me — always visible */}
+          <div className="w-full">
+            <textarea
+              value={aboutMe}
+              onChange={(e) => setAboutMe(e.target.value)}
+              placeholder={"e.g. I'm a 28-year-old software engineer in Seoul.\nMy goal for this year is to launch my own AI startup.\nI love building things but I'm scared of leaving my stable job."}
+              className="w-full h-32 bg-mirror-800/60 border border-mirror-700 rounded-xl px-4 py-3 text-mirror-100 placeholder:text-mirror-500 text-sm leading-relaxed resize-none focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition"
+            />
+            <p className="text-mirror-400 text-xs mt-1.5 text-center">
+              Optional — age, goals, dreams, fears.
+            </p>
+          </div>
+
+          {/* Generate */}
+          <button
+            onClick={handleGenerate}
+            disabled={!capturedFile}
+            className={`w-full py-3.5 rounded-full font-semibold transition text-sm ${
+              capturedFile
+                ? "bg-accent text-mirror-900 hover:bg-accent-dim"
+                : "bg-mirror-700 text-mirror-500 cursor-not-allowed"
+            }`}
+          >
+            {capturedFile
+              ? aboutMe.trim()
+                ? "Meet My Future Selves"
+                : "Skip & Generate"
+              : "Take a selfie to begin"}
+          </button>
+
+          {error && (
+            <div className="w-full px-4 py-4 bg-red-900/30 border border-red-800 rounded-xl text-center">
+              <p className="text-red-300 text-sm">{error}</p>
+              {errorRetryable && (
+                <button
+                  onClick={handleGenerate}
+                  className="mt-3 px-6 py-2 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition text-sm"
+                >
+                  Try Again
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

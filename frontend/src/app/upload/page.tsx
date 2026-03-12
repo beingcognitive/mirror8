@@ -122,20 +122,12 @@ export default function UploadPage() {
 
           {/* Selfie: capture or preview */}
           {capturedFile && previewUrl ? (
-            <div className="flex items-center gap-3">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-mirror-600 shadow-lg shadow-mirror-900/40 shrink-0">
-                <img
-                  src={previewUrl}
-                  alt="Your selfie"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <button
-                onClick={handleRetake}
-                className="text-sm text-mirror-400 hover:text-mirror-200 transition"
-              >
-                Retake
-              </button>
+            <div className="w-60 h-60 md:w-96 md:h-96 rounded-2xl overflow-hidden bg-mirror-800 border border-mirror-700">
+              <img
+                src={previewUrl}
+                alt="Your selfie"
+                className="w-full h-full object-cover"
+              />
             </div>
           ) : (
             <SelfieCapture onCapture={handleCapture} />
@@ -154,22 +146,32 @@ export default function UploadPage() {
             </p>
           </div>
 
-          {/* Generate */}
-          <button
-            onClick={handleGenerate}
-            disabled={!capturedFile}
-            className={`w-full py-3.5 rounded-full font-semibold transition text-sm ${
-              capturedFile
-                ? "bg-accent text-mirror-900 hover:bg-accent-dim"
-                : "bg-mirror-700 text-mirror-500 cursor-not-allowed"
-            }`}
-          >
-            {capturedFile
-              ? aboutMe.trim()
-                ? "Meet My Future Selves"
-                : "Skip & Generate"
-              : "Take a selfie to begin"}
-          </button>
+          {/* Actions */}
+          <div className="flex gap-3 w-full">
+            {capturedFile && (
+              <button
+                onClick={handleRetake}
+                className="px-5 py-3 rounded-full border border-mirror-600 text-mirror-300 hover:bg-mirror-800 transition text-sm"
+              >
+                Retake
+              </button>
+            )}
+            <button
+              onClick={handleGenerate}
+              disabled={!capturedFile}
+              className={`flex-1 py-3.5 rounded-full font-semibold transition text-sm ${
+                capturedFile
+                  ? "bg-accent text-mirror-900 hover:bg-accent-dim"
+                  : "bg-mirror-700 text-mirror-500 cursor-not-allowed"
+              }`}
+            >
+              {capturedFile
+                ? aboutMe.trim()
+                  ? "Meet My Future Selves"
+                  : "Skip & Generate"
+                : "Take a selfie to begin"}
+            </button>
+          </div>
 
           {error && (
             <div className="w-full px-4 py-4 bg-red-900/30 border border-red-800 rounded-xl text-center">

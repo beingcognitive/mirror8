@@ -11,8 +11,6 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [capturedFile, setCapturedFile] = useState<File | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
 
   // Attach stream to video element once both exist
@@ -51,7 +49,6 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext("2d")!;
-    // Center crop
     const sx = (video.videoWidth - size) / 2;
     const sy = (video.videoHeight - size) / 2;
     ctx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
@@ -60,33 +57,20 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
       (blob) => {
         if (blob) {
           const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
-          setCapturedFile(file);
-          setPreview(canvas.toDataURL("image/jpeg"));
           stopCamera();
+          onCapture(file);
         }
       },
       "image/jpeg",
       0.9,
     );
-  }, [stopCamera]);
+  }, [stopCamera, onCapture]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setCapturedFile(file);
-    setPreview(URL.createObjectURL(file));
     stopCamera();
-  };
-
-  const retake = () => {
-    setPreview(null);
-    setCapturedFile(null);
-  };
-
-  const confirm = () => {
-    if (capturedFile) {
-      onCapture(capturedFile);
-    }
+    onCapture(file);
   };
 
   return (
@@ -100,15 +84,9 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
         onChange={handleFileUpload}
       />
 
-      {/* Preview or Camera */}
+      {/* Camera viewfinder or placeholder */}
       <div className="w-60 h-60 md:w-96 md:h-96 rounded-2xl overflow-hidden bg-mirror-800 border border-mirror-700 relative">
-        {preview ? (
-          <img
-            src={preview}
-            alt="Selfie preview"
-            className="w-full h-full object-cover"
-          />
-        ) : cameraActive ? (
+        {cameraActive ? (
           <video
             ref={videoRef}
             autoPlay
@@ -126,22 +104,7 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
 
       {/* Actions */}
       <div className="flex gap-3">
-        {preview ? (
-          <>
-            <button
-              onClick={retake}
-              className="px-6 py-3 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition"
-            >
-              Retake
-            </button>
-            <button
-              onClick={confirm}
-              className="px-6 py-3 rounded-full bg-accent text-mirror-900 font-semibold hover:bg-accent-dim transition"
-            >
-              Use This Photo
-            </button>
-          </>
-        ) : cameraActive ? (
+        {cameraActive ? (
           <button
             onClick={takePhoto}
             className="w-16 h-16 rounded-full bg-white border-4 border-mirror-400 hover:scale-105 transition"

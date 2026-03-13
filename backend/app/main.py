@@ -522,12 +522,15 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 run_config=run_config,
             ):
                 # Audio from model (future self's voice)
-                # After interruption, discard stale audio until new response
+                # After interruption audio_suppressed is True; reset it on the
+                # first new audio chunk so we don't drop the start of the reply.
+                # Any event.content arriving after event.interrupted belongs to
+                # the new response — the old response's audio stops before that.
                 if event.content and event.content.parts:
-                    if not audio_suppressed:
-                        for part in event.content.parts:
-                            if part.inline_data and part.inline_data.data:
-                                await websocket.send_bytes(part.inline_data.data)
+                    for part in event.content.parts:
+                        if part.inline_data and part.inline_data.data:
+                            audio_suppressed = False  # New audio = new response
+                            await websocket.send_bytes(part.inline_data.data)
 
                 # Output transcription (what future self said)
                 # The API sends incremental chunks (finished=False) then a
@@ -535,7 +538,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 # when available; keep partials only as fallback.
                 # Also filter leaked <ctrl##> tokens from Gemini's audio pipeline.
                 if hasattr(event, "output_transcription") and event.output_transcription:
-                    audio_suppressed = False  # New response started
+                    audio_suppressed = False  # Fallback reset (e.g. text-only turn)
                     text = event.output_transcription.text
                     if text:
                         text = re.sub(r"<ctrl\d+>", "", text).strip()

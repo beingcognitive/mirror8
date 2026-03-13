@@ -429,7 +429,6 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
         ),
         realtime_input_config=types.RealtimeInputConfig(
             automatic_activity_detection=types.AutomaticActivityDetection(
-                start_of_speech_sensitivity="START_SENSITIVITY_LOW",
                 end_of_speech_sensitivity="END_SENSITIVITY_LOW",
                 silence_duration_ms=500,
             ),

@@ -104,14 +104,4 @@ SUPABASE_SECRET_KEY=sb_secret_...
 git push
 ```
 
-## Known Issues & Fixes
-
-### `nonlocal` required for nested async closures (fixed in revision 00032)
-
-The `audio_suppressed` flag in `mirror_websocket` is read and written inside the nested `downstream_task` function. Python treats any variable assigned with `=` inside a nested function as local to that function — even if it's defined in an enclosing scope. This means reading it *before* the first local assignment raises `UnboundLocalError`. The fix is `nonlocal audio_suppressed` at the top of the nested function.
-
-Other closure variables like `pending_agent_text` didn't hit this because they use `.append()` / `.clear()` (mutation, not reassignment).
-
----
-
 Built for the Gemini Live Agent Challenge.

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirror8 Architecture Diagram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111110;
+    color: #e4ddd5;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px;
+  }
+
+  .container {
+    width: 1200px;
+    position: relative;
+  }
+
+  .title {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .title h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #c9956b;
+    letter-spacing: -0.5px;
+  }
+
+  .title .subtitle {
+    font-size: 14px;
+    color: #7a7269;
+    margin-top: 4px;
+  }
+
+  /* Layers */
+  .layer {
+    border: 1.5px solid #2a2722;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    background: #1c1a17;
+  }
+
+  .layer-label {
+    position: absolute;
+    top: -11px;
+    left: 24px;
+    background: #1c1a17;
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #7a7269;
+  }
+
+  .layer-label.accent {
+    color: #c9956b;
+  }
+
+  /* Frontend layer */
+  .frontend-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .frontend-main {
+    flex: 1;
+  }
+
+  .frontend-main h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e4ddd5;
+    margin-bottom: 4px;
+  }
+
+  .tech-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .tag {
+    background: #2a2722;
+    color: #a39a90;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .tag.highlight {
+    background: rgba(201, 149, 107, 0.15);
+    color: #c9956b;
+    border: 1px solid rgba(201, 149, 107, 0.3);
+  }
+
+  .deploy-badge {
+    background: #2a2722;
+    border: 1px solid #3d3833;
+    border-radius: 10px;
+    padding: 12px 18px;
+    text-align: center;
+    min-width: 160px;
+  }
+
+  .deploy-badge .platform {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e4ddd5;
+  }
+
+  .deploy-badge .type {
+    font-size: 11px;
+    color: #7a7269;
+    margin-top: 2px;
+  }
+
+  /* Connection arrows */
+  .arrows {
+    display: flex;
+    justify-content: center;
+    gap: 120px;
+    margin: 0;
+    padding: 6px 0;
+    position: relative;
+  }
+
+  .arrow-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .arrow-line {
+    width: 2px;
+    height: 28px;
+    background: linear-gradient(to bottom, #3d3833, #c9956b);
+  }
+
+  .arrow-head {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid #c9956b;
+  }
+
+  .arrow-label {
+    font-size: 10px;
+    color: #7a7269;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  /* Backend layer */
+  .backend-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .backend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .backend-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e4ddd5;
+  }
+
+  /* Gemini models grid */
+  .models-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .model-card {
+    border: 1.5px solid #2a2722;
+    border-radius: 12px;
+    padding: 16px;
+    background: #161513;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .model-card:hover {
+    border-color: rgba(201, 149, 107, 0.4);
+  }
+
+  .model-card .phase {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #c9956b;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .phase-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #c9956b;
+  }
+
+  .model-card .model-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e4ddd5;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .model-card .model-id {
+    font-size: 10px;
+    color: #564f48;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    margin-bottom: 8px;
+    word-break: break-all;
+  }
+
+  .model-card .model-desc {
+    font-size: 12px;
+    color: #a39a90;
+    line-height: 1.5;
+  }
+
+  .model-card .model-badge {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(201, 149, 107, 0.12);
+    color: #c9956b;
+  }
+
+  .model-card.adk-card {
+    border-color: rgba(201, 149, 107, 0.3);
+    background: rgba(201, 149, 107, 0.05);
+  }
+
+  /* Data flow labels */
+  .flow-labels {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 8px;
+  }
+
+  .flow-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #7a7269;
+  }
+
+  .flow-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .flow-dot.audio { background: #6ba5c9; }
+  .flow-dot.video { background: #c96b6b; }
+  .flow-dot.text { background: #8bc96b; }
+
+  /* Database layer */
+  .db-content {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .db-card {
+    flex: 1;
+    border: 1.5px solid #2a2722;
+    border-radius: 12px;
+    padding: 16px;
+    background: #161513;
+  }
+
+  .db-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e4ddd5;
+    margin-bottom: 4px;
+  }
+
+  .db-card .db-type {
+    font-size: 11px;
+    color: #7a7269;
+    margin-bottom: 10px;
+  }
+
+  .db-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .db-card ul li {
+    font-size: 12px;
+    color: #a39a90;
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .db-card ul li::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #564f48;
+    flex-shrink: 0;
+  }
+
+  /* User journey */
+  .journey {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-top: 24px;
+    padding: 16px 24px;
+    background: #161513;
+    border-radius: 12px;
+    border: 1px solid #2a2722;
+  }
+
+  .journey-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 100px;
+  }
+
+  .journey-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: #2a2722;
+  }
+
+  .journey-icon.active {
+    background: rgba(201, 149, 107, 0.2);
+    border: 1px solid rgba(201, 149, 107, 0.4);
+  }
+
+  .journey-text {
+    font-size: 11px;
+    color: #a39a90;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .journey-arrow {
+    color: #3d3833;
+    font-size: 18px;
+    margin: 0 8px;
+    margin-bottom: 18px;
+  }
+
+  /* Watermark */
+  .watermark {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 11px;
+    color: #3d3833;
+    letter-spacing: 0.5px;
+  }
+
+  /* Real-time badge */
+  .realtime-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(107, 165, 201, 0.1);
+    border: 1px solid rgba(107, 165, 201, 0.25);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #6ba5c9;
+    font-weight: 500;
+  }
+
+  .realtime-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6ba5c9;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Title -->
+  <div class="title">
+    <h1>Mirror8 — System Architecture</h1>
+    <div class="subtitle">Real-time AI conversation with your future self</div>
+  </div>
+
+  <!-- User Journey -->
+  <div class="journey">
+    <div class="journey-step">
+      <div class="journey-icon">📸</div>
+      <div class="journey-text">Upload<br>Selfie</div>
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step">
+      <div class="journey-icon">🧠</div>
+      <div class="journey-text">Analyze<br>+ Backstory</div>
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step">
+      <div class="journey-icon">🎨</div>
+      <div class="journey-text">Generate<br>8 Portraits</div>
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step">
+      <div class="journey-icon">🪞</div>
+      <div class="journey-text">Choose<br>a Future</div>
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step">
+      <div class="journey-icon active">🗣️</div>
+      <div class="journey-text">Live Voice<br>Conversation</div>
+    </div>
+  </div>
+
+  <!-- Frontend -->
+  <div class="layer" style="margin-top: 24px;">
+    <div class="layer-label">Frontend</div>
+    <div class="frontend-content">
+      <div class="frontend-main">
+        <h3>User Interface</h3>
+        <div class="tech-tags">
+          <span class="tag">Next.js 15</span>
+          <span class="tag">React 19</span>
+          <span class="tag">TypeScript</span>
+          <span class="tag">Tailwind CSS 4</span>
+          <span class="tag highlight">Web Audio API (16kHz PCM)</span>
+          <span class="tag highlight">Canvas (1 FPS Camera)</span>
+          <span class="tag highlight">WebSocket</span>
+        </div>
+      </div>
+      <div class="deploy-badge">
+        <div class="platform">Cloudflare Pages</div>
+        <div class="type">Static Export</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrows -->
+  <div class="arrows">
+    <div class="arrow-group">
+      <div class="arrow-label">REST + SSE</div>
+      <div class="arrow-line"></div>
+      <div class="arrow-head"></div>
+    </div>
+    <div class="arrow-group">
+      <div class="arrow-label" style="display: flex; align-items: center; gap: 6px;">
+        WebSocket
+        <span class="realtime-badge"><span class="realtime-dot"></span>LIVE</span>
+      </div>
+      <div class="arrow-line"></div>
+      <div class="arrow-head"></div>
+    </div>
+  </div>
+
+  <!-- Backend -->
+  <div class="layer">
+    <div class="layer-label accent">Backend — Google Cloud Run</div>
+    <div class="backend-content">
+      <div class="backend-header">
+        <div>
+          <h3>FastAPI + Google Agent Development Kit</h3>
+          <div class="tech-tags" style="margin-top: 6px;">
+            <span class="tag">Python 3.11</span>
+            <span class="tag">google-adk</span>
+            <span class="tag">google-genai</span>
+            <span class="tag">JWT Auth (JWKS/RS256)</span>
+          </div>
+        </div>
+        <div class="deploy-badge">
+          <div class="platform">Google Cloud Run</div>
+          <div class="type">Containerized</div>
+        </div>
+      </div>
+
+      <!-- 4 Gemini Models -->
+      <div class="models-grid">
+        <div class="model-card">
+          <div class="phase"><span class="phase-dot"></span>Phase A</div>
+          <div class="model-name">Gemini 3.1 Pro</div>
+          <div class="model-id">gemini-3.1-pro-preview</div>
+          <div class="model-desc">Analyzes selfie appearance and generates 8 personalized future-self backstories</div>
+          <div class="model-badge">Text + Vision</div>
+        </div>
+
+        <div class="model-card">
+          <div class="phase"><span class="phase-dot"></span>Phase B</div>
+          <div class="model-name">Gemini 3.1 Flash Image</div>
+          <div class="model-id">gemini-3.1-flash-image-preview</div>
+          <div class="model-desc">Generates photorealistic portrait for each future self from the original selfie</div>
+          <div class="model-badge">Image Generation</div>
+        </div>
+
+        <div class="model-card adk-card">
+          <div class="phase"><span class="phase-dot"></span>Live Conversation</div>
+          <div class="model-name">Gemini 2.5 Flash Native Audio</div>
+          <div class="model-id">gemini-2.5-flash-native-audio-preview</div>
+          <div class="model-desc">Real-time bidirectional voice + camera vision via ADK agent with dynamic persona</div>
+          <div class="model-badge">ADK Live Agent</div>
+        </div>
+
+        <div class="model-card">
+          <div class="phase"><span class="phase-dot"></span>Emotion Judge</div>
+          <div class="model-name">Gemini 3 Flash</div>
+          <div class="model-id">gemini-3-flash-preview</div>
+          <div class="model-desc">Monitors conversation emotional arc and triggers live portrait regeneration</div>
+          <div class="model-badge">LLM-as-Judge</div>
+        </div>
+      </div>
+
+      <!-- Data flow legend -->
+      <div class="flow-labels">
+        <div class="flow-item"><span class="flow-dot audio"></span>Audio Stream (16kHz PCM, bidirectional)</div>
+        <div class="flow-item"><span class="flow-dot video"></span>Camera Frames (1 FPS, JPEG)</div>
+        <div class="flow-item"><span class="flow-dot text"></span>Transcription (real-time, input + output)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrows to DB -->
+  <div class="arrows">
+    <div class="arrow-group">
+      <div class="arrow-label">Auth + Data + Storage</div>
+      <div class="arrow-line"></div>
+      <div class="arrow-head"></div>
+    </div>
+  </div>
+
+  <!-- Database Layer -->
+  <div class="layer">
+    <div class="layer-label">Data Layer</div>
+    <div class="db-content">
+      <div class="db-card">
+        <h4>Supabase PostgreSQL</h4>
+        <div class="db-type">Database + Auth</div>
+        <ul>
+          <li>Google OAuth (JWKS verification)</li>
+          <li>Sessions &amp; conversation history</li>
+          <li>Persona data (JSONB)</li>
+          <li>Row-level security (RLS)</li>
+        </ul>
+      </div>
+      <div class="db-card">
+        <h4>Supabase Storage</h4>
+        <div class="db-type">Object Storage</div>
+        <ul>
+          <li>Generated portraits (public bucket)</li>
+          <li>Live portrait updates</li>
+          <li>User selfies</li>
+        </ul>
+      </div>
+      <div class="db-card">
+        <h4>ADK Session</h4>
+        <div class="db-type">In-Memory (per conversation)</div>
+        <ul>
+          <li>Dynamic system prompt</li>
+          <li>Conversation context window</li>
+          <li>Auto-compression at 100K tokens</li>
+          <li>Tool state (insights, reflections)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="watermark">Mirror8 — Gemini Live Agent Challenge 2026</div>
+
+</div>
+
+</body>
+</html>

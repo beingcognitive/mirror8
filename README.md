@@ -12,81 +12,20 @@ Landing → Sign in with Google → Upload Selfie → AI generates 8 futures →
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Browser (Next.js static export on Cloudflare Pages)            │
-│                                                                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐ │
-│  │ Landing Page  │  │ Upload Page  │  │ Mirror Room            │ │
-│  │ Google OAuth  │→ │ SelfieCapture│→ │ Live voice + camera    │ │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬─────────────┘ │
-│         │                 │                      │               │
-│  ┌──────▼─────────────────▼──────────────────────▼─────────────┐ │
-│  │ Supabase JS Client (Auth + session tokens)                  │ │
-│  └─────────────────────────┬───────────────────────────────────┘ │
-└─────────────────────────────┼───────────────────────────────────┘
-                              │ Bearer JWT
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  FastAPI Backend (Google Cloud Run)                              │
-│                                                                 │
-│  ┌──────────┐  ┌──────────────┐  ┌─────────────────────────┐   │
-│  │ auth.py  │  │ generator.py │  │ main.py                 │   │
-│  │ JWKS/RS256│  │ Phase A+B    │  │ REST + WebSocket        │   │
-│  └──────────┘  └──────┬───────┘  └──────────┬──────────────┘   │
-│                       │                      │                  │
-│          ┌────────────▼──────────────────────▼───────────────┐  │
-│          │              Google Gemini APIs                    │  │
-│          │  ┌─────────────────┐  ┌────────────────────────┐  │  │
-│          │  │ gemini-3.1-pro  │  │ gemini-2.5-flash-image │  │  │
-│          │  │ Text Analysis   │  │ Portrait Generation    │  │  │
-│          │  └─────────────────┘  └────────────────────────┘  │  │
-│          │  ┌──────────────────────────────────────────────┐  │  │
-│          │  │ gemini-2.5-flash-native-audio (Live API)     │  │  │
-│          │  │ Real-time voice conversation via ADK          │  │  │
-│          │  └──────────────────────────────────────────────┘  │  │
-│          └───────────────────────────────────────────────────┘  │
-│                                                                 │
-│          ┌───────────────────────────────────────────────────┐  │
-│          │              Supabase (via service key)            │  │
-│          │  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │  │
-│          │  │ sessions │  │ futures  │  │ conversations  │  │  │
-│          │  │ (DB)     │  │ (DB)     │  │ (DB)           │  │  │
-│          │  └──────────┘  └──────────┘  └────────────────┘  │  │
-│          │  ┌────────────────────────────────────────────┐   │  │
-│          │  │ portraits (Storage)                         │   │  │
-│          │  └────────────────────────────────────────────┘   │  │
-│          └───────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+![Mirror8 System Architecture](docs/architecture.jpg)
 
-### Generation Pipeline
+**4 Gemini models** work in a coordinated pipeline:
 
-```
-Selfie upload
-  │
-  ├─ Phase A: Gemini 3.1 Pro → JSON analysis (appearance + 8 personalized backstories)
-  │
-  └─ Phase B: Gemini 2.5 Flash Image (×8, max 4 concurrent)
-       │       selfie + archetype prompt → portrait image
-       │
-       └─ Store: session → Supabase DB, portraits → Supabase Storage
-```
+| Phase | Model | Purpose |
+|-------|-------|---------|
+| **A — Analysis** | Gemini 3.1 Pro | Selfie analysis + 8 personalized backstories |
+| **B — Portraits** | Gemini 3.1 Flash Image | Photorealistic portrait for each future self |
+| **Live Conversation** | Gemini 2.5 Flash Native Audio (ADK) | Real-time bidirectional voice + camera vision |
+| **Emotion Judge** | Gemini 3 Flash | Monitors emotional arc, triggers live portrait regeneration |
 
-### Live Conversation
+Each conversation creates a unique **ADK Agent** with a dynamic system prompt built from the archetype + selfie analysis + user context. The future self can see the user through the camera (1 FPS), hear them (16kHz PCM audio), and respond in character with a gender-matched voice.
 
-```
-Browser mic (16kHz PCM) ──→ WebSocket ──→ FastAPI ──→ Gemini Live API (ADK)
-Browser camera (1 FPS)  ──→ WebSocket ──→ FastAPI ──→ Gemini Live API (ADK)
-Future-self voice       ←── WebSocket ←── FastAPI ←── Gemini Live API (ADK)
-Transcriptions          ←── WebSocket ←── FastAPI ←── Gemini Live API (ADK)
-```
-
-Each conversation gets a unique ADK Agent with a persona-specific system prompt built from the archetype + Phase A analysis. The future self can see the user through the camera and respond in character.
-
-### Session History
-
-Users can browse past sessions with page-flip navigation arrows on the futures grid. The most recent session shows no date label; older sessions display their creation date. Sessions are cached client-side after first load for instant navigation.
+During the conversation, the portrait **evolves in real time** — a separate Gemini model evaluates the emotional arc and regenerates the portrait at meaningful moments (breakthroughs, fears, dreams).
 
 ## Tech Stack
 

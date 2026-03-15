@@ -5,18 +5,39 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { getMySessions } from "@/lib/api";
 
+const HAS_SESSIONS_KEY = "mirror8_has_sessions";
+
 export default function LandingPage() {
   const { user, loading, signIn, signOut, getAccessToken } = useAuth();
   const router = useRouter();
-  const [hasSessions, setHasSessions] = useState(false);
+  const [hasSessions, setHasSessions] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (loading) return;
+
+    if (!user) {
+      setHasSessions(null);
+      return;
+    }
+
+    const cached = window.localStorage.getItem(HAS_SESSIONS_KEY);
+    if (cached === "true") {
+      setHasSessions(true);
+    } else if (cached === "false") {
+      setHasSessions(false);
+    }
+
     (async () => {
       const token = await getAccessToken();
       if (!token) return;
-      const sessions = await getMySessions(token);
-      setHasSessions(sessions.length > 0);
+      try {
+        const sessions = await getMySessions(token);
+        const nextHasSessions = sessions.length > 0;
+        window.localStorage.setItem(HAS_SESSIONS_KEY, String(nextHasSessions));
+        setHasSessions(nextHasSessions);
+      } catch {
+        // Keep the cached state if we have one; otherwise leave the placeholder.
+      }
     })();
   }, [loading, user, getAccessToken]);
 
@@ -36,12 +57,20 @@ export default function LandingPage() {
         <div className="flex items-center gap-3">
           {!loading && user ? (
             <>
-              {hasSessions && (
+              {hasSessions !== false && (
                 <button
-                  onClick={() => router.push("/futures")}
-                  className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
+                  onClick={() => {
+                    if (hasSessions) router.push("/futures");
+                  }}
+                  disabled={!hasSessions}
+                  aria-busy={hasSessions === null}
+                  className={`px-4 py-2 rounded-full border transition text-sm min-w-[10rem] ${
+                    hasSessions
+                      ? "border-mirror-600 text-mirror-200 hover:bg-mirror-800"
+                      : "border-mirror-700 text-mirror-400 cursor-wait"
+                  }`}
                 >
-                  My Futures
+                  {hasSessions === null ? "Checking Futures..." : "My Futures"}
                 </button>
               )}
               {user.user_metadata?.avatar_url && (

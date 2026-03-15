@@ -378,7 +378,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
     transcript_log: list[dict] = []
     pending_agent_text = []
     pending_user_text = []
-    audio_suppressed = False  # Discard stale audio after interruption
+    suppressed_invocation_id: str | None = None  # Drop stale audio after interruption
     started_at = datetime.now(timezone.utc)
 
     def flush_pending():
@@ -487,7 +487,7 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
 
     async def downstream_task():
         """Receive events from Gemini via ADK, forward to browser."""
-        nonlocal audio_suppressed
+        nonlocal suppressed_invocation_id
         try:
             # Send initial greeting to trigger the future self's opening
             if past_conversations:
@@ -521,15 +521,44 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 live_request_queue=live_request_queue,
                 run_config=run_config,
             ):
+                event_invocation_id = getattr(event, "invocation_id", None)
+                suppress_event_audio = False
+
+                if suppressed_invocation_id and event_invocation_id != suppressed_invocation_id:
+                    suppressed_invocation_id = None
+
+                if event.interrupted:
+                    suppress_event_audio = True
+                    suppressed_invocation_id = event_invocation_id
+                    # Send accumulated transcripts before signal
+                    if pending_user_text:
+                        await websocket.send_text(json.dumps({
+                            "type": "transcript", "role": "user",
+                            "text": " ".join(pending_user_text),
+                        }))
+                    if pending_agent_text:
+                        await websocket.send_text(json.dumps({
+                            "type": "transcript", "role": "agent",
+                            "text": " ".join(pending_agent_text),
+                        }))
+                    flush_pending()
+                    await websocket.send_text(json.dumps({"type": "interrupted"}))
+
                 # Audio from model (future self's voice)
-                # After interruption audio_suppressed is True; reset it on the
-                # first new audio chunk so we don't drop the start of the reply.
-                # Any event.content arriving after event.interrupted belongs to
-                # the new response — the old response's audio stops before that.
+                # Suppress audio for the interrupted invocation. Gemini may mark
+                # the same event as interrupted while still carrying trailing
+                # audio content, so interruption must be processed first.
                 if event.content and event.content.parts:
                     for part in event.content.parts:
                         if part.inline_data and part.inline_data.data:
-                            audio_suppressed = False  # New audio = new response
+                            if (
+                                suppress_event_audio
+                                or (
+                                    suppressed_invocation_id
+                                    and event_invocation_id == suppressed_invocation_id
+                                )
+                            ):
+                                continue
                             await websocket.send_bytes(part.inline_data.data)
 
                 # Output transcription (what future self said)
@@ -538,7 +567,6 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                 # when available; keep partials only as fallback.
                 # Also filter leaked <ctrl##> tokens from Gemini's audio pipeline.
                 if hasattr(event, "output_transcription") and event.output_transcription:
-                    audio_suppressed = False  # Fallback reset (e.g. text-only turn)
                     text = event.output_transcription.text
                     if text:
                         text = re.sub(r"<ctrl\d+>", "", text).strip()
@@ -557,23 +585,9 @@ async def mirror_websocket(websocket: WebSocket, session_id: str, future_id: str
                             pending_user_text.clear()
                         pending_user_text.append(text)
 
-                if event.interrupted:
-                    audio_suppressed = True  # Suppress stale audio
-                    # Send accumulated transcripts before signal
-                    if pending_user_text:
-                        await websocket.send_text(json.dumps({
-                            "type": "transcript", "role": "user",
-                            "text": " ".join(pending_user_text),
-                        }))
-                    if pending_agent_text:
-                        await websocket.send_text(json.dumps({
-                            "type": "transcript", "role": "agent",
-                            "text": " ".join(pending_agent_text),
-                        }))
-                    flush_pending()
-                    await websocket.send_text(json.dumps({"type": "interrupted"}))
-
                 if event.turn_complete:
+                    if event_invocation_id == suppressed_invocation_id:
+                        suppressed_invocation_id = None
                     # Send accumulated transcripts before signal
                     if pending_user_text:
                         await websocket.send_text(json.dumps({

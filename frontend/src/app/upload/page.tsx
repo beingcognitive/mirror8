@@ -8,8 +8,6 @@ import GenerationProgress from "@/components/GenerationProgress";
 import { generateFuturesStream, GenerationProgress as ProgressEvent } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 
-const HAS_SESSIONS_KEY = "mirror8_has_sessions";
-
 export default function UploadPage() {
   const router = useRouter();
   const { user, loading, getAccessToken } = useAuth();
@@ -67,7 +65,6 @@ export default function UploadPage() {
         aboutMe || undefined,
       );
       sessionStorage.setItem("mirror8_session", JSON.stringify(result));
-      localStorage.setItem(HAS_SESSIONS_KEY, "true");
       router.push("/futures");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";

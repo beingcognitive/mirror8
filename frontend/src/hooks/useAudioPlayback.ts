@@ -6,6 +6,7 @@ export function useAudioPlayback() {
   const contextRef = useRef<AudioContext | null>(null);
   const nextTimeRef = useRef(0);
   const generationRef = useRef(0); // Incremented on clear to drop stale chunks
+  const suppressUntilRef = useRef(0); // Ignore trailing chunks during barge-in
   const [isPlaying, setIsPlaying] = useState(false);
 
   const init = useCallback(() => {
@@ -18,6 +19,7 @@ export function useAudioPlayback() {
   const playChunk = useCallback((pcmData: ArrayBuffer) => {
     const ctx = contextRef.current;
     if (!ctx) return;
+    if (Date.now() < suppressUntilRef.current) return;
 
     // Capture generation at time of call — if it changes, this chunk is stale
     const gen = generationRef.current;
@@ -53,9 +55,13 @@ export function useAudioPlayback() {
     };
   }, []);
 
-  const clearBuffer = useCallback(() => {
+  const clearBuffer = useCallback((suppressForMs = 0) => {
     // Bump generation so in-flight chunks are dropped
     generationRef.current++;
+    suppressUntilRef.current = Math.max(
+      suppressUntilRef.current,
+      Date.now() + suppressForMs,
+    );
     if (contextRef.current) {
       contextRef.current.close();
       contextRef.current = new AudioContext({ sampleRate: 24000 });
@@ -68,6 +74,7 @@ export function useAudioPlayback() {
     contextRef.current?.close();
     contextRef.current = null;
     nextTimeRef.current = 0;
+    suppressUntilRef.current = 0;
     setIsPlaying(false);
   }, []);
 

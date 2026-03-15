@@ -46,6 +46,10 @@ function buildPastTranscripts(conversations: Conversation[]): TranscriptEntry[] 
 }
 
 export default function MirrorRoom({ sessionId, future, accessToken, pastConversations, onSessionEnd, stopRef }: MirrorRoomProps) {
+  const LOCAL_BARGE_IN_LEVEL = 0.08;
+  const LOCAL_BARGE_IN_FRAMES = 3;
+  const LOCAL_BARGE_IN_SUPPRESS_MS = 700;
+
   const [status, setStatus] = useState<ConnectionStatus>("idle");
 
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
@@ -70,6 +74,8 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
   const [waitingForFirstResponse, setWaitingForFirstResponse] = useState(false);
   const cameraVideoRef = useRef<HTMLVideoElement>(null);
   const hasAttemptedAutoStart = useRef(false);
+  const bargeInFramesRef = useRef(0);
+  const lastBargeInAtRef = useRef(0);
 
   // Pending transcript aggregation
   const pendingAgentText = useRef("");
@@ -219,6 +225,29 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
   const handleToggleCamera = useCallback(() => {
     setIsCameraOn((prev) => !prev);
   }, []);
+
+  useEffect(() => {
+    if (!isMicOn || status !== "active" || !playback.isPlaying) {
+      bargeInFramesRef.current = 0;
+      return;
+    }
+
+    if (micLevel < LOCAL_BARGE_IN_LEVEL) {
+      bargeInFramesRef.current = 0;
+      return;
+    }
+
+    bargeInFramesRef.current += 1;
+    if (bargeInFramesRef.current < LOCAL_BARGE_IN_FRAMES) return;
+
+    const now = Date.now();
+    if (now - lastBargeInAtRef.current < LOCAL_BARGE_IN_SUPPRESS_MS) return;
+
+    lastBargeInAtRef.current = now;
+    bargeInFramesRef.current = 0;
+    playback.clearBuffer(LOCAL_BARGE_IN_SUPPRESS_MS);
+    setMood("listening");
+  }, [isMicOn, micLevel, playback, status]);
 
   // Auto-start on mount
   useEffect(() => {

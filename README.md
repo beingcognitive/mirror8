@@ -94,6 +94,43 @@ SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
+## Reproducible Testing
+
+### Prerequisites
+
+- **Google API Key** with access to Gemini models (get one at [aistudio.google.com](https://aistudio.google.com/apikey))
+- **Supabase project** with Google OAuth configured ([supabase.com](https://supabase.com))
+- **Chrome or Edge** (recommended for microphone + camera APIs)
+- Python 3.12+, Node.js 18+
+
+### Setup
+
+1. Clone the repo and configure environment variables (see [Quick Start](#quick-start) above)
+2. Start the backend: `cd backend && uvicorn app.main:app --reload --port 8080`
+3. Start the frontend: `cd frontend && npm run dev`
+4. Open http://localhost:3000
+
+### Step-by-Step Test
+
+1. **Sign in** — Click "Get Started with Google" and authenticate with your Google account.
+2. **Upload a selfie** — Take a photo with your webcam or upload an image file. Optionally add personal context for more personalized future selves.
+3. **Wait for generation** — Mirror8 analyzes the selfie and generates 8 future-self portraits with backstories. A progress UI shows generation status.
+4. **Browse your 8 futures** — Review the generated futures and select one to begin.
+5. **Start a conversation** — Allow microphone and camera permissions when prompted. The conversation starts automatically.
+6. **Verify the live experience**
+   - The future self responds with live voice.
+   - The future self can reference visual details from the camera feed.
+   - If you interrupt mid-sentence, the future self should stop and adapt to your interruption.
+   - The portrait may update during meaningful moments in the conversation.
+7. **Check persistence** — Return to the home page and open "My Futures" to confirm the session was saved and can be revisited.
+
+### Expected Behavior
+
+- Portrait generation takes ~60-90 seconds (8 portraits generated in parallel)
+- Live conversation should feel near-real-time; exact latency depends on network and model load
+- Portrait regeneration during conversation happens at emotionally meaningful moments (not on a timer)
+- Sessions are saved to the signed-in account and can be revisited from My Futures
+
 ## Deployment
 
 ```bash

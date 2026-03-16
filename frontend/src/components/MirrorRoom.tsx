@@ -46,9 +46,9 @@ function buildPastTranscripts(conversations: Conversation[]): TranscriptEntry[] 
 }
 
 export default function MirrorRoom({ sessionId, future, accessToken, pastConversations, onSessionEnd, stopRef }: MirrorRoomProps) {
+  const LOCAL_BARGE_IN_LEVEL = 0.20;
   const LOCAL_BARGE_IN_FRAMES = 3;
   const LOCAL_BARGE_IN_SUPPRESS_MS = 700;
-  const INTERRUPT_LEVEL_STORAGE_KEY = "mirror8_interrupt_level";
 
   const [status, setStatus] = useState<ConnectionStatus>("idle");
 
@@ -68,7 +68,6 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
   const [micLevel, setMicLevel] = useState(0);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
-  const [interruptLevel, setInterruptLevel] = useState(0.14);
   const [mood, setMood] = useState<AvatarMood>("idle");
   const [autoStartFailed, setAutoStartFailed] = useState(false);
   const [currentPortraitUrl, setCurrentPortraitUrl] = useState(future.portraitUrl || null);
@@ -228,26 +227,12 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
   }, []);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(INTERRUPT_LEVEL_STORAGE_KEY);
-    if (!stored) return;
-    const parsed = Number(stored);
-    if (!Number.isNaN(parsed)) {
-      setInterruptLevel(Math.min(0.24, Math.max(0.08, parsed)));
-    }
-  }, []);
-
-  const handleInterruptLevelChange = useCallback((level: number) => {
-    setInterruptLevel(level);
-    window.localStorage.setItem(INTERRUPT_LEVEL_STORAGE_KEY, String(level));
-  }, []);
-
-  useEffect(() => {
     if (!isMicOn || status !== "active" || !playback.isPlaying) {
       bargeInFramesRef.current = 0;
       return;
     }
 
-    if (micLevel < interruptLevel) {
+    if (micLevel < LOCAL_BARGE_IN_LEVEL) {
       bargeInFramesRef.current = 0;
       return;
     }
@@ -262,7 +247,7 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
     bargeInFramesRef.current = 0;
     playback.clearBuffer(LOCAL_BARGE_IN_SUPPRESS_MS);
     setMood("listening");
-  }, [interruptLevel, isMicOn, micLevel, playback, status]);
+  }, [isMicOn, micLevel, playback, status]);
 
   // Auto-start on mount
   useEffect(() => {
@@ -359,12 +344,10 @@ export default function MirrorRoom({ sessionId, future, accessToken, pastConvers
           micLevel={micLevel}
           isMicOn={isMicOn}
           isCameraOn={isCameraOn}
-          interruptLevel={interruptLevel}
           onStart={handleStart}
           onEnd={handleEnd}
           onToggleMic={handleToggleMic}
           onToggleCamera={handleToggleCamera}
-          onInterruptLevelChange={handleInterruptLevelChange}
           autoStarting={!autoStartFailed}
         />
       </div>

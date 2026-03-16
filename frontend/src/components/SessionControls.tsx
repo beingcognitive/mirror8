@@ -8,12 +8,10 @@ interface SessionControlsProps {
   micLevel: number;
   isMicOn: boolean;
   isCameraOn: boolean;
-  interruptLevel: number;
   onStart: () => void;
   onEnd: () => void;
   onToggleMic: () => void;
   onToggleCamera: () => void;
-  onInterruptLevelChange: (level: number) => void;
   autoStarting?: boolean;
 }
 
@@ -22,12 +20,10 @@ export default function SessionControls({
   micLevel,
   isMicOn,
   isCameraOn,
-  interruptLevel,
   onStart,
   onEnd,
   onToggleMic,
   onToggleCamera,
-  onInterruptLevelChange,
   autoStarting,
 }: SessionControlsProps) {
   const isActive = status === "active";
@@ -36,7 +32,7 @@ export default function SessionControls({
   if (autoStarting && !isActive) return null;
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex items-center justify-center gap-4">
       {status === "idle" || status === "ended" || status === "error" ? (
         <button
           onClick={onStart}
@@ -49,7 +45,7 @@ export default function SessionControls({
           {status === "permissions" ? "Requesting access..." : "Connecting..."}
         </div>
       ) : (
-        <div className="flex items-center justify-center gap-4">
+        <>
           {/* Mic toggle */}
           <button
             onClick={onToggleMic}
@@ -89,29 +85,7 @@ export default function SessionControls({
           >
             ✕
           </button>
-        </div>
-      )}
-
-      {isActive && (
-        <div className="w-full max-w-xs">
-          <div className="flex items-center justify-between text-xs text-mirror-400 mb-2">
-            <span>Interrupt threshold</span>
-            <span>{Math.round(interruptLevel * 100)}%</span>
-          </div>
-          <input
-            type="range"
-            min="0.08"
-            max="0.24"
-            step="0.01"
-            value={interruptLevel}
-            onChange={(e) => onInterruptLevelChange(Number(e.target.value))}
-            className="w-full accent-accent"
-            aria-label="Interrupt threshold"
-          />
-          <p className="mt-1 text-[11px] text-mirror-500">
-            Raise this if small noises keep interrupting the future self.
-          </p>
-        </div>
+        </>
       )}
     </div>
   );

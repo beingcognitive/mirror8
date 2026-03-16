@@ -107,7 +107,8 @@ function renderSharePage(data: SharedSessionData, frontendUrl: string): string {
     </header>
 
     <div class="hero">
-      <h1>This is my Mirror8 &mdash; meet 8 future versions of me.</h1>
+      <h1>This is my Mirror8</h1>
+      <p class="subtitle">Meet 8 future versions of me.</p>
 
     </div>
 
@@ -185,8 +186,12 @@ function pageStyles(): string {
     .hero h1 {
       font-size: 1.75rem;
       line-height: 1.3;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       color: #f4f0eb;
+    }
+    .subtitle {
+      color: #a39a90;
+      font-size: 1.05rem;
     }
     .subtitle {
       color: #a39a90;

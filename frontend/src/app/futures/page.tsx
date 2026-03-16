@@ -197,6 +197,12 @@ function FuturesPageContent() {
           Mirror8
         </Link>
         <div className="flex items-center gap-2">
+          <Link
+            href="/upload"
+            className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
+          >
+            New Selfie
+          </Link>
           {data && (
             <button
               onClick={() => setShareOpen(true)}
@@ -208,12 +214,6 @@ function FuturesPageContent() {
               Share
             </button>
           )}
-          <Link
-            href="/upload"
-            className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
-          >
-            New Selfie
-          </Link>
         </div>
       </nav>
 

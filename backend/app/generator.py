@@ -162,7 +162,7 @@ async def phase_a_analyze(selfie_bytes: bytes, selfie_mime: str, about_me: str =
     if about_me.strip():
         freeform = True
         prompt = _build_freeform_prompt(about_me)
-    elif random.random() < 0.5:
+    elif random.random() < 0.75:
         freeform = True
         prompt = _build_image_read_prompt()
         logger.info("Phase A mode: image-read (Gemini decides futures from selfie)")

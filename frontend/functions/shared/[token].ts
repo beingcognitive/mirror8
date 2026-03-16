@@ -107,9 +107,7 @@ function renderSharePage(data: SharedSessionData, frontendUrl: string, token: st
     </header>
 
     <div class="hero">
-      <h1>This is my Mirror8</h1>
-      <p class="subtitle">Meet 8 future versions of me.</p>
-
+      <p class="headline">Meet 8 future versions of me.</p>
     </div>
 
     <div class="grid">
@@ -117,13 +115,12 @@ function renderSharePage(data: SharedSessionData, frontendUrl: string, token: st
     </div>
 
     <div class="cta-section">
-      <a href="${frontendUrl}" class="cta">Meet Your 8 Future Selves</a>
-      <p class="cta-sub">Have a live conversation with who you could become</p>
+      <a href="${frontendUrl}" class="cta">Discover your futures and talk to them</a>
     </div>
 
     <footer>
       <div class="footer-line"></div>
-      <p>Mirror8</p>
+      <p>Mirror8 &middot; Meet your future self</p>
     </footer>
   </div>
 </body>
@@ -183,15 +180,10 @@ function pageStyles(): string {
       text-align: center;
       padding: 40px 0 32px;
     }
-    .hero h1 {
-      font-size: 1.75rem;
-      line-height: 1.3;
-      margin-bottom: 8px;
-      color: #f4f0eb;
-    }
-    .subtitle {
+    .headline {
+      font-size: 1.15rem;
+      font-weight: 400;
       color: #a39a90;
-      font-size: 1.05rem;
     }
     .subtitle {
       color: #a39a90;
@@ -243,11 +235,6 @@ function pageStyles(): string {
     .cta-section {
       text-align: center;
       padding: 8px 0 48px;
-    }
-    .cta-sub {
-      color: #7a7269;
-      font-size: 0.85rem;
-      margin-top: 12px;
     }
     footer {
       text-align: center;

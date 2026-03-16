@@ -10,6 +10,9 @@ from supabase import create_client, Client
 from app.config import SUPABASE_URL, SUPABASE_SECRET_KEY
 from app.personas import ARCHETYPES
 
+# Canonical archetype order for stable sorting
+ARCHETYPE_ORDER = {a.id: i for i, a in enumerate(ARCHETYPES)}
+
 logger = logging.getLogger(__name__)
 
 _client: Client | None = None
@@ -283,9 +286,8 @@ def get_shared_session(share_token: str) -> dict | None:
         .execute()
     )
 
-    # Sort by canonical archetype order from personas.py
-    archetype_order = {a.id: i for i, a in enumerate(ARCHETYPES)}
-    sorted_futures = sorted(futures.data, key=lambda f: archetype_order.get(f["archetype_id"], 999))
+    # Sort by canonical archetype order
+    sorted_futures = sorted(futures.data, key=lambda f: ARCHETYPE_ORDER.get(f["archetype_id"], 999))
 
     return {
         "created_at": session.data[0]["created_at"],

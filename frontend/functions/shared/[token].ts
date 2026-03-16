@@ -181,9 +181,9 @@ function pageStyles(): string {
       padding: 40px 0 32px;
     }
     .headline {
-      font-size: 1.15rem;
-      font-weight: 400;
-      color: #a39a90;
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: #c8bfb4;
     }
     .subtitle {
       color: #a39a90;

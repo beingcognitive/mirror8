@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from supabase import create_client, Client
 
 from app.config import SUPABASE_URL, SUPABASE_SECRET_KEY
+from app.personas import ARCHETYPES
 
 logger = logging.getLogger(__name__)
 
@@ -279,9 +280,12 @@ def get_shared_session(share_token: str) -> dict | None:
         client.table("futures")
         .select("name, title, archetype_id, portrait_url")
         .eq("session_id", session_id)
-        .order("created_at")
         .execute()
     )
+
+    # Sort by canonical archetype order from personas.py
+    archetype_order = {a.id: i for i, a in enumerate(ARCHETYPES)}
+    sorted_futures = sorted(futures.data, key=lambda f: archetype_order.get(f["archetype_id"], 999))
 
     return {
         "created_at": session.data[0]["created_at"],
@@ -292,7 +296,7 @@ def get_shared_session(share_token: str) -> dict | None:
                 "archetype_id": f["archetype_id"],
                 "portrait_url": f["portrait_url"],
             }
-            for f in futures.data
+            for f in sorted_futures
         ],
     }
 

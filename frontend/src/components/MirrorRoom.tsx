@@ -47,7 +47,7 @@ function buildPastTranscripts(conversations: Conversation[]): TranscriptEntry[] 
 
 export default function MirrorRoom({ sessionId, future, accessToken, pastConversations, onSessionEnd, stopRef }: MirrorRoomProps) {
   const LOCAL_BARGE_IN_LEVEL = 0.20;
-  const LOCAL_BARGE_IN_FRAMES = 3;
+  const LOCAL_BARGE_IN_FRAMES = 6;
   const LOCAL_BARGE_IN_SUPPRESS_MS = 700;
 
   const [status, setStatus] = useState<ConnectionStatus>("idle");

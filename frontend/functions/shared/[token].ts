@@ -87,7 +87,7 @@ function renderSharePage(data: SharedSessionData, frontendUrl: string): string {
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="My 8 Future Selves — Mirror8" />
-  <meta property="og:description" content="What would your future self look like? Discover 8 AI-generated futures on Mirror8." />
+  <meta property="og:description" content="What would your future self look like? Discover 8 possible futures on Mirror8." />
   <meta property="og:image" content="${frontendUrl}/hero.jpg" />
   <meta property="og:url" content="${frontendUrl}" />
   <meta property="og:site_name" content="Mirror8" />
@@ -95,7 +95,7 @@ function renderSharePage(data: SharedSessionData, frontendUrl: string): string {
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="My 8 Future Selves — Mirror8" />
-  <meta name="twitter:description" content="What would your future self look like? Discover 8 AI-generated futures on Mirror8." />
+  <meta name="twitter:description" content="What would your future self look like? Discover 8 possible futures on Mirror8." />
   <meta name="twitter:image" content="${frontendUrl}/hero.jpg" />
 
   <style>${baseStyles()}${pageStyles()}</style>
@@ -103,12 +103,12 @@ function renderSharePage(data: SharedSessionData, frontendUrl: string): string {
 <body>
   <div class="container">
     <header>
-      <div class="logo">Mirror8</div>
+      <a href="${frontendUrl}" class="logo">Mirror8</a>
     </header>
 
     <div class="hero">
-      <h1>What would your future self look like?</h1>
-      <p class="subtitle">8 AI-generated futures, each a possible version of you.</p>
+      <h1>This is my Mirror8 &mdash; meet 8 future versions of me.</h1>
+
     </div>
 
     <div class="grid">
@@ -116,12 +116,13 @@ function renderSharePage(data: SharedSessionData, frontendUrl: string): string {
     </div>
 
     <div class="cta-section">
-      <a href="${frontendUrl}" class="cta">Discover Your Future Selves</a>
+      <a href="${frontendUrl}" class="cta">Meet Your 8 Future Selves</a>
+      <p class="cta-sub">Have a live conversation with who you could become</p>
     </div>
 
     <footer>
       <div class="footer-line"></div>
-      <p>Mirror8 &middot; AI conversations with your future self</p>
+      <p>Mirror8</p>
     </footer>
   </div>
 </body>
@@ -175,6 +176,7 @@ function pageStyles(): string {
       font-size: 1.25rem;
       font-weight: 700;
       color: #c9956b;
+      text-decoration: none;
     }
     .hero {
       text-align: center;
@@ -236,6 +238,11 @@ function pageStyles(): string {
     .cta-section {
       text-align: center;
       padding: 8px 0 48px;
+    }
+    .cta-sub {
+      color: #7a7269;
+      font-size: 0.85rem;
+      margin-top: 12px;
     }
     footer {
       text-align: center;

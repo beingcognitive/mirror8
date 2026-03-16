@@ -1,7 +1,9 @@
 """Supabase-backed session storage (DB + Storage)."""
 
 import logging
+import secrets
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 from supabase import create_client, Client
 
@@ -182,6 +184,114 @@ def get_user_sessions(user_id: str) -> list[dict]:
         .execute()
     )
     return result.data
+
+
+def create_or_reenable_session_share(session_id: str, user_id: str) -> dict | None:
+    """Enable sharing for a session. Returns {share_token, is_active} or None if not owned."""
+    client = _get_client()
+
+    # Verify ownership
+    session = client.table("sessions").select("id").eq("id", session_id).eq("user_id", user_id).execute()
+    if not session.data:
+        return None
+
+    # Check for existing share row
+    existing = client.table("session_shares").select("*").eq("session_id", session_id).execute()
+
+    if not existing.data:
+        # Create new share
+        result = client.table("session_shares").insert({"session_id": session_id}).execute()
+        row = result.data[0]
+        return {"share_token": row["share_token"], "is_active": True}
+
+    row = existing.data[0]
+    if row["is_active"]:
+        # Already active — return existing token
+        return {"share_token": row["share_token"], "is_active": True}
+
+    # Re-enable with new token (old links stay dead)
+    new_token = secrets.token_hex(16)
+    client.table("session_shares").update({
+        "share_token": new_token,
+        "is_active": True,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }).eq("id", row["id"]).execute()
+    return {"share_token": new_token, "is_active": True}
+
+
+def disable_session_share(session_id: str, user_id: str) -> bool:
+    """Disable sharing for a session. Returns True if found and disabled."""
+    client = _get_client()
+
+    # Verify ownership
+    session = client.table("sessions").select("id").eq("id", session_id).eq("user_id", user_id).execute()
+    if not session.data:
+        return False
+
+    result = client.table("session_shares").update({
+        "is_active": False,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }).eq("session_id", session_id).execute()
+    return bool(result.data)
+
+
+def get_session_share_status(session_id: str, user_id: str) -> dict | None:
+    """Get share status for a session. Returns {share_token, is_active} or None."""
+    client = _get_client()
+
+    # Verify ownership
+    session = client.table("sessions").select("id").eq("id", session_id).eq("user_id", user_id).execute()
+    if not session.data:
+        return None
+
+    result = client.table("session_shares").select("share_token, is_active").eq("session_id", session_id).execute()
+    if not result.data:
+        return None
+
+    row = result.data[0]
+    return {"share_token": row["share_token"], "is_active": row["is_active"]}
+
+
+def get_shared_session(share_token: str) -> dict | None:
+    """Public: fetch shared session data by token. Returns futures list or None."""
+    client = _get_client()
+
+    share = (
+        client.table("session_shares")
+        .select("session_id")
+        .eq("share_token", share_token)
+        .eq("is_active", True)
+        .execute()
+    )
+    if not share.data:
+        return None
+
+    session_id = share.data[0]["session_id"]
+
+    # Get session created_at (not user_id or analysis)
+    session = client.table("sessions").select("created_at").eq("id", session_id).execute()
+    if not session.data:
+        return None
+
+    futures = (
+        client.table("futures")
+        .select("name, title, archetype_id, portrait_url")
+        .eq("session_id", session_id)
+        .execute()
+    )
+
+    return {
+        "created_at": session.data[0]["created_at"],
+        "futures": [
+            {
+                "name": f["name"],
+                "title": f["title"],
+                "archetype_id": f["archetype_id"],
+                "portrait_url": f["portrait_url"],
+            }
+            for f in futures.data
+        ],
+    }
 
 
 def upload_selfie(session_id: str, selfie_bytes: bytes, selfie_mime: str) -> str:

@@ -151,6 +151,16 @@ body {
   display: none;
 }
 
+/* Share panel slide-up */
+@keyframes share-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.share-panel-slide-up {
+  animation: share-slide-up 0.3s ease-out;
+}
+
 /* Thin scrollbar for card backstory */
 .scrollbar-thin {
   color-scheme: dark;

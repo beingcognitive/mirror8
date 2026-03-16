@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import FuturesGrid from "@/components/FuturesGrid";
+import SharePanel from "@/components/SharePanel";
 import { GenerationResult } from "@/lib/types";
 import { useAuth } from "@/components/AuthProvider";
 import { getMySessions, getSession, SessionSummary } from "@/lib/api";
@@ -81,6 +82,7 @@ function FuturesPageContent() {
   const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(
     null,
   );
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Load session list and current session data on mount
   useEffect(() => {
@@ -194,12 +196,25 @@ function FuturesPageContent() {
         <Link href="/" className="text-xl font-bold gradient-text">
           Mirror8
         </Link>
-        <Link
-          href="/upload"
-          className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
-        >
-          New Selfie
-        </Link>
+        <div className="flex items-center gap-2">
+          {data && (
+            <button
+              onClick={() => setShareOpen(true)}
+              className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm flex items-center gap-1.5"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 17l9.2-9.2M17 17V7H7" />
+              </svg>
+              Share
+            </button>
+          )}
+          <Link
+            href="/upload"
+            className="px-4 py-2 rounded-full border border-mirror-600 text-mirror-200 hover:bg-mirror-800 transition text-sm"
+          >
+            New Selfie
+          </Link>
+        </div>
       </nav>
 
       <div className="flex-1 px-6 py-8">
@@ -275,6 +290,14 @@ function FuturesPageContent() {
           )}
         </div>
       </div>
+
+      {data && (
+        <SharePanel
+          sessionId={data.sessionId}
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </main>
   );
 }

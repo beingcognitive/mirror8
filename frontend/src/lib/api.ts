@@ -147,6 +147,60 @@ export async function getConversationsForFuture(
   return data.conversations;
 }
 
+// ──── Share API ────
+
+export interface ShareStatus {
+  share_token: string | null;
+  share_url: string | null;
+  is_active: boolean;
+}
+
+export async function enableSessionShare(
+  sessionId: string,
+  accessToken: string,
+): Promise<ShareStatus> {
+  const response = await fetch(`${API_URL}/api/session/${sessionId}/share`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to enable sharing");
+  }
+  return response.json();
+}
+
+export async function disableSessionShare(
+  sessionId: string,
+  accessToken: string,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/api/session/${sessionId}/share`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to disable sharing");
+  }
+}
+
+export async function getSessionShareStatus(
+  sessionId: string,
+  accessToken: string,
+): Promise<ShareStatus> {
+  const response = await fetch(`${API_URL}/api/session/${sessionId}/share`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to get share status");
+  }
+  return response.json();
+}
+
 export interface SessionSummary {
   id: string;
   created_at: string;

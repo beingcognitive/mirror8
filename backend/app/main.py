@@ -25,11 +25,15 @@ from app.generator import generate_all_futures
 from app.personas import ARCHETYPE_MAP, ARCHETYPES
 from app.live_portrait import generate_live_portrait, should_update_portrait
 from app.session_store import (
+    create_or_reenable_session_share,
     create_session,
+    disable_session_share,
     get_conversations,
     get_conversations_for_future,
     get_selfie_bytes,
     get_session,
+    get_session_share_status,
+    get_shared_session,
     get_user_sessions,
     save_conversation,
     set_future,
@@ -275,6 +279,63 @@ async def list_conversations(
 
     conversations = get_conversations(session_id)
     return JSONResponse({"conversations": conversations})
+
+
+@app.post("/api/session/{session_id}/share")
+async def enable_session_share(
+    session_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    """Enable sharing for a session. Returns share token and URL."""
+    result = create_or_reenable_session_share(session_id, user_id)
+    if result is None:
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
+
+    share_url = f"{FRONTEND_URL}/shared/{result['share_token']}"
+    return JSONResponse({
+        "share_token": result["share_token"],
+        "share_url": share_url,
+        "is_active": result["is_active"],
+    })
+
+
+@app.delete("/api/session/{session_id}/share")
+async def disable_share(
+    session_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    """Disable sharing for a session."""
+    success = disable_session_share(session_id, user_id)
+    if not success:
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
+    return JSONResponse({"ok": True})
+
+
+@app.get("/api/session/{session_id}/share")
+async def get_share_status(
+    session_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    """Get share status for a session."""
+    status = get_session_share_status(session_id, user_id)
+    if status is None:
+        return JSONResponse({"share_token": None, "is_active": False})
+
+    share_url = f"{FRONTEND_URL}/shared/{status['share_token']}" if status["is_active"] else None
+    return JSONResponse({
+        "share_token": status["share_token"],
+        "share_url": share_url,
+        "is_active": status["is_active"],
+    })
+
+
+@app.get("/api/shared/{share_token}")
+async def get_shared_session_data(share_token: str):
+    """Public endpoint: get shared session futures data."""
+    data = get_shared_session(share_token)
+    if data is None:
+        return JSONResponse(status_code=404, content={"error": "Not found"})
+    return JSONResponse(data)
 
 
 @app.get("/api/session/{session_id}/conversations/{future_id}")

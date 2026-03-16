@@ -27,7 +27,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     const data: SharedSessionData = await res.json();
-    return new Response(renderSharePage(data, frontendUrl), {
+    return new Response(renderSharePage(data, frontendUrl, token), {
       headers: { "Content-Type": "text/html;charset=UTF-8" },
     });
   } catch {
@@ -57,7 +57,7 @@ function notFoundPage(frontendUrl: string): Response {
   );
 }
 
-function renderSharePage(data: SharedSessionData, frontendUrl: string): string {
+function renderSharePage(data: SharedSessionData, frontendUrl: string, token: string): string {
   const futures = data.futures;
 
   const portraitCards = futures
@@ -89,7 +89,7 @@ function renderSharePage(data: SharedSessionData, frontendUrl: string): string {
   <meta property="og:title" content="My 8 Future Selves — Mirror8" />
   <meta property="og:description" content="What would your future self look like? Discover 8 possible futures on Mirror8." />
   <meta property="og:image" content="${frontendUrl}/hero.jpg" />
-  <meta property="og:url" content="${frontendUrl}" />
+  <meta property="og:url" content="${frontendUrl}/shared/${token}" />
   <meta property="og:site_name" content="Mirror8" />
 
   <!-- Twitter / X -->

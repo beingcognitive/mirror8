@@ -249,7 +249,9 @@ def get_session_share_status(session_id: str, user_id: str) -> dict | None:
         return None
 
     row = result.data[0]
-    return {"share_token": row["share_token"], "is_active": row["is_active"]}
+    if not row["is_active"]:
+        return {"share_token": None, "is_active": False}
+    return {"share_token": row["share_token"], "is_active": True}
 
 
 def get_shared_session(share_token: str) -> dict | None:
@@ -277,6 +279,7 @@ def get_shared_session(share_token: str) -> dict | None:
         client.table("futures")
         .select("name, title, archetype_id, portrait_url")
         .eq("session_id", session_id)
+        .order("created_at")
         .execute()
     )
 
